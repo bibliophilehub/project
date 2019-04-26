@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" type="text/css" id="theme"
+          th:href="@{/v2/css/theme-default.css}"/>
+    <link th:href="@{/huploadify/Huploadify.css}" rel="stylesheet"
+          type="text/css"/>
+</head>
+<style>
+    .td-right-score {
+        width: 500px;
+    }
+
+
+</style>
+<body>
+<form action="" id="channelForm">
+    <input type="hidden" id="id" name="id" th:value="${channel.id}"/>
+    <div class="block">
+        <div class="page-title">
+            <h2><span class="fa fa-arrow-circle-o-left"></span></h2>
+            <button type="button" onclick="dosubmit()" class="btn btn-info">保存</button>
+            <button type="button" class="btn btn-default giveUp">放弃</button>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <!-- START TABS -->
+            <div class="panel panel-default tabs">
+                <div class="panel-body tab-content tabBox">
+                    <div class="tab-pane active" id="tab-first">
+                        <table>
+                            <tr>
+                                <td class="td-left"><font color="red">*</font>渠道名称</td>
+                                <td class="td-right">
+                                    <input type="text" class="form-control" id="channelName" name="channelName"
+                                           th:value="${channel.channelName}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-left"><font color="red">*</font>渠道码</td>
+                                <td class="td-right">
+                                    <input type="text" class="form-control" id="channelCode" name="channelCode"
+                                           th:value="${channel.channelCode}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-left">渠道老用户信用分</td>
+                                <td class="td-right-score">
+                                    <input type="text" class="form-control-score" id="oldUserScore" name="oldUserScore"
+                                           th:value="${channel.oldUserScore}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-left">渠道新用户信用分</td>
+                                <td class="td-right-score">
+                                    <input type="text" class="form-control-score" id="newUserScore" name="newUserScore"
+                                           th:value="${channel.newUserScore}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-left"></td>
+                                <td class="td-right" ><font color="red">若需拒绝该用户类型，请填写-1，若直接通过,请填写0</font></td>
+                            </tr>
+                            <tr>
+                                <td class="td-left">预付款金额</td>
+                                <td class="td-right-score">
+                                    <input type="text" class="form-control-score" id="loanPer" name="loanPer"
+                                           th:value="${channelLoanQuota.loanPer}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-left">违约金</td>
+                                <td class="td-right-score">
+                                    <input type="text" class="form-control-score" id="loanWy" name="loanWy"
+                                           th:value="${channelLoanQuota.loanWy}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-left">总金额</td>
+                                <td class="td-right-score">
+                                    <input type="text" class="form-control-score" id="loanAll" name="loanAll"
+                                           th:value="${channelLoanQuota.loanAll}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-left"><input type="hidden" id="channelId" name="channelId" th:value="${channelLoanQuota.channelId}"/></td>
+                                <td class="td-right" ><font color="red">若需单独设置渠道借款额度，请填写：预付款金额、违约金、总金额，三项都需填写；若弃用该渠道借款额度，则将这三项都设为空。</font></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- END TABS -->
+        </div>
+    </div>
+</form>
+</body>
+<script type="text/javascript" th:src='@{/v2/js/jquery.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/jquery-ui.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/bootstrap.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/bootstrapValidator.min.js}'></script>
+<script type='text/javascript' th:src='@{/v2/js/icheck.min.js}'></script>
+<script type="text/javascript"
+        th:src="@{/v2/js/jquery.mCustomScrollbar.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/bootstrap-select.js}"></script>
+<script type="text/javascript"
+        th:src="@{/v2/js/jquery.dataTables.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/settings.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/plugins.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/actions.js}"></script>
+<script type="text/javascript"
+        th:src="@{/v2/js/bootstrap-treeview.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/common.js}"></script>
+<script type="text/javascript"
+        th:src="@{/huploadify/jquery.Huploadify.js}"></script>
+<script th:inline="javascript">
+    var id = [[${channel.id}]];
+    $(function () {
+        if (id) {
+            $("#channelCode").attr("disabled", "disabled");
+        }
+    });
+    $(".fa-arrow-circle-o-left").click(function () {
+
+        location.href = "/channel/getChannelList";
+    })
+
+    $(".giveUp").click(function () {
+        $("#commonPopup").remove();
+        var val = $(this).html();
+        popup(val);
+        $("#commonPopup").addClass("open");
+    });
+    $("body").delegate("#sureid", "click", function () {
+        $("#commonPopup").removeClass("open");
+        window.history.go(-1);
+    });
+    function dosubmit() {
+
+        if ($("#channelName").val() == '') {
+            alertPopup("渠道名称不能为空!");
+            return;
+        }
+        if ($("#channelName").val().length > 20) {
+            alertPopup("渠道名称20个字符以内!");
+            return;
+        }
+
+        if ($("#channelCode").val() == '') {
+            alertPopup("渠道码不能为空!");
+            return;
+        }
+        if (isNaN($("#oldUserScore").val())|| isNaN($("#newUserScore").val())) {
+            alertPopup("信用分必须为数字!");
+            return;
+        }
+        if(($("#loanPer").val() == null)|| ($("#loanPer").val() == '')){
+        }else{
+            if(isNaN($("#loanPer").val())){
+                alertPopup("预付款金额必须为大于0的数字!");
+                return;
+            }
+            if(($("#loanWy").val() == null)|| ($("#loanWy").val() == '')){
+                alertPopup("违约金不能为空!");
+                return;
+            }
+            if(($("#loanAll").val() == null)|| ($("#loanAll").val() == '')){
+                alertPopup("总金额不能为空!");
+                return;
+            }
+        }
+
+        if(($("#loanWy").val() == null)|| ($("#loanWy").val() == '')){
+        }else{
+            if(isNaN($("#loanWy").val())){
+                alertPopup("违约金必须为大于0的数字!");
+                return;
+            }
+            if(($("#loanPer").val() == null)|| ($("#loanPer").val() == '')){
+                alertPopup("预付款金额不能为空!");
+                return;
+            }
+            if(($("#loanAll").val() == null)|| ($("#loanAll").val() == '')){
+                alertPopup("总金额不能为空!");
+                return;
+            }
+        }
+
+        if(($("#loanAll").val() == null)|| ($("#loanAll").val() == '')){
+        }else{
+            if(isNaN($("#loanAll").val())){
+                alertPopup("总金额必须为大于0的数字!");
+                return;
+            }
+            if(($("#loanPer").val() == null)|| ($("#loanPer").val() == '')){
+                alertPopup("预付款金额不能为空!");
+                return;
+            }
+            if(($("#loanWy").val() == null)|| ($("#loanWy").val() == '')){
+                alertPopup("违约金不能为空!");
+                return;
+            }
+        }
+        // if($("#channelCode").val().length>6){
+        // 	alertPopup("渠道码6个字符以内!");
+        // 	return;
+        // }
+        //
+        //
+        // var reg = new RegExp(/^(?![^a-zA-Z]+$)(?!\D+$)/);
+        // if (!reg.test($("#channelCode").val())){
+        // 	alertPopup("渠道码必须是数字和字母的组合!");
+        // 	return;
+        // }
+
+        $.ajax({
+            type: "post",
+            data: $('#channelForm').serialize(),
+            url: [[@{/channel/save}]],
+            success: function (resp) {
+                hidden();
+                if (resp.code == '-1') {
+                    alertPopup(resp.msg);
+                    return;
+                }
+                alertPopup(resp.msg, function () {
+                    location.href = '/channel/getChannelList';
+                });
+            }
+        });
+
+    }
+
+
+</script>
+</html>

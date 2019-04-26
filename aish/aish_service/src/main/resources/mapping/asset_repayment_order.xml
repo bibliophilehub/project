@@ -1,0 +1,976 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.inext.dao.IAssetRepaymentOrderDao">
+    <select id="getPageList" parameterType="java.util.Map" resultType="com.inext.entity.AssetRepaymentOrder">
+        select * from (
+        SELECT
+        aro.id,aro.user_id,aro.user_phone,aro.user_name,aro.order_id,aro.money_amount,aro.penalty_amount,aro.plan_late_fee,aro.repayment_amount,aro.repaymented_amount
+        ,aro.repayment_type,aro.late_fee_apr,aro.credit_repayment_time,aro.repayment_time,aro.period,aro.repayment_real_time,aro.late_fee_start_time,aro.interest_update_time,aro.order_status,aro.order_renewal,aro.order_mail,aro.update_time,aro.update_account,
+        abo.apply_new,
+        abo.payment_channel,
+        ADDDATE(aro.repayment_time,abo.money_day) renewal_repayment_time,
+        IFNULL(aro.cedit_amount,0) as cedit_amount,
+        IFNULL(aro.late_day,0) as late_day,
+        (aro.repayment_amount - IFNULL(aro.cedit_amount,0) - repaymented_amount) should_repay_amount,
+        <if test="type==7">
+            (Case WHEN aro.late_day = 0 then ''
+            WHEN DATE_ADD(aro.repayment_time,INTERVAL -3 Month)>DATE_ADD(curdate(),interval -day(curdate())+1 day)
+            then'M2+'
+            WHEN DATE_ADD(aro.repayment_time,INTERVAL -2 Month)>DATE_ADD(curdate(),interval -day(curdate())+1 day) then
+            'M2'
+            WHEN DATE_ADD(aro.repayment_time,INTERVAL -1 Month)>DATE_ADD(curdate(),interval -day(curdate())+1 day) Then
+            'M1'
+            WHEN aro.late_day BETWEEN 1 and 10 then 'S1'
+            WHEN aro.late_day BETWEEN 11 and 30 then 'S2'
+            ELSE '' END) as late_level,
+        </if>
+        if(u.channelId=0,'自然流量',if(chi.channel_name is not null,chi.channel_name,'未知')) channel_name
+        from asset_repayment_order aro
+        inner join borrow_user u on aro.user_id=u.id
+        inner join asset_borrow_order abo on aro.order_id=abo.id
+        left join channel_info chi on u.channelId=chi.id
+        where 1=1
+        <if test="channelId != null and channelId != -1">
+            and u.channelId = #{channelId}
+        </if>
+        <if test="orderId != null and orderId !=''">
+            and aro.order_id = #{orderId}
+        </if>
+        <if test="userPhone != null and userPhone !=''">
+            and aro.user_phone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and aro.user_name = #{userName}
+        </if>
+        <if test="orderStatus != null and orderStatus !=''">
+            and aro.order_status = #{orderStatus}
+        </if>
+        <if test="repaymentType != null and repaymentType !=''">
+            and aro.repayment_type = #{repaymentType}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            and aro.repayment_time >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            <![CDATA[and aro.repayment_time <= CONCAT(#{endDate},' 23:59:59')]]>
+        </if>
+        <if test="startRepayDate != null and startRepayDate != ''">
+            and <![CDATA[	 DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') >=#{startRepayDate} ]]>
+        </if>
+        <if test="endRepayDate != null and endRepayDate != ''">
+            and <![CDATA[	 DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') <=#{endRepayDate} ]]>
+        </if>
+        <if test="type==6">
+            and aro.order_status in(6,7)
+        </if>
+        <if test="type==7">
+            and aro.order_status in(7)
+        </if>
+        <if test="type==8">
+            and aro.order_status in(8)
+        </if>
+        <if test="paymentChannel != null and paymentChannel != ''">
+            and abo.payment_channel = #{paymentChannel}
+        </if>
+        ) as t where 1=1
+        <if test="orderno != null and orderno != ''">
+            and orderno like CONCAT('%',#{orderno},'%')
+        </if>
+        <if test="lateLevel != null and lateLevel != ''">
+            and late_level = #{lateLevel}
+        </if>
+        <if test="sortColumn != null and sortColumn != ''">
+            Order BY ${sortColumn}
+        </if>
+        <if test="sortColumn == null or sortColumn == ''">
+            ORDER BY repayment_time DESC
+        </if>
+    </select>
+    <!--已还款查询-->
+    <select id="getListForRepaymented" parameterType="java.util.Map" resultType="com.inext.entity.AssetRepaymentOrder">
+        SELECT
+        aro.id,aro.user_id,aro.user_phone,aro.user_name,aro.order_id,aro.money_amount,aro.penalty_amount,aro.plan_late_fee,aro.repayment_amount,aro.repaymented_amount
+        ,IFNULL(aro.repayment_type,4)
+        repayment_type,aro.late_fee_apr,aro.credit_repayment_time,aro.repayment_time,aro.period,aro.repayment_real_time,aro.late_fee_start_time,aro.interest_update_time,aro.order_status,aro.order_renewal,aro.order_mail,aro.update_time,aro.update_account,
+        abo.apply_new,
+        abo.payment_channel,
+        IFNULL(aro.cedit_amount,0) as cedit_amount,
+        IFNULL(aro.late_day,0) as late_day,
+        (aro.repayment_amount - IFNULL(aro.cedit_amount,0) - repaymented_amount) should_repay_amount,
+        if(u.channelId=0,'自然流量',if(chi.channel_name is not null,chi.channel_name,'未知')) channel_name,
+        IF(aro.dk_pay_status=2, aro.seq_id,
+        IF(i.order_id IS NOT NULL, i.order_id,
+        IF(hi.order_id IS NOT NULL, hi.order_id,
+        IF(d.repayment_order_no IS NOT NULL, d.repayment_order_no, '')
+        )
+        )
+        )
+        orderno,
+        IF(aro.dk_pay_status=2, '宝付',
+        IF(i.order_id IS NOT NULL, '宝付',
+        IF(hi.order_id IS NOT NULL, '汇潮',
+        IF(d.repayment_order_no IS NOT NULL, '后台还款', '')
+        )
+        )
+        )
+        repaymentChannel
+        FROM asset_repayment_order aro
+        INNER JOIN asset_borrow_order abo ON aro.order_id=abo.id
+        INNER JOIN borrow_user u ON aro.user_id=u.id
+        LEFT JOIN channel_info chi ON u.channelId=chi.id
+        LEFT JOIN repayment_info i ON i.asset_id = aro.order_id AND i.is_suc = 1 AND i.type = 1
+        LEFT JOIN hc_repayment_info hi ON hi.asset_id = aro.order_id AND hi.is_suc = 1 AND hi.type =1
+        LEFT JOIN asset_repayment_detail d ON d.order_id = aro.order_id and d.id = (select id from asset_repayment_detail bd where bd.order_id = aro.order_id order by id desc limit 1) and d.type = 1
+        where 1=1 and aro.order_status = 8
+        <if test="channelId != null and channelId != -1">
+            and u.channelId = #{channelId}
+        </if>
+        <if test="orderId != null and orderId !=''">
+            and aro.order_id = #{orderId}
+        </if>
+        <if test="userPhone != null and userPhone !=''">
+            and aro.user_phone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and aro.user_name = #{userName}
+        </if>
+        <if test="repaymentType != null and repaymentType !='' and repaymentType != '4'">
+            and aro.repayment_type = #{repaymentType}
+        </if>
+        <if test="repaymentType=='4'">
+            and aro.repayment_type is null
+        </if>
+        <if test="startDate != null and startDate != ''">
+            and aro.repayment_time >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            <![CDATA[and aro.repayment_time <= CONCAT(#{endDate},' 23:59:59')]]>
+        </if>
+        <if test="startRepayDate != null and startRepayDate != ''">
+            and <![CDATA[	 DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') >=#{startRepayDate} ]]>
+        </if>
+        <if test="endRepayDate != null and endRepayDate != ''">
+            and <![CDATA[	 DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') <=#{endRepayDate} ]]>
+        </if>
+        <if test="paymentChannel != null and paymentChannel != ''">
+            and abo.payment_channel = #{paymentChannel}
+        </if>
+        <if test="sortColumn != null and sortColumn != ''">
+            Order BY ${sortColumn}
+        </if>
+        <if test="sortColumn == null or sortColumn == ''">
+            ORDER BY repayment_time DESC
+        </if>
+    </select>
+    <select id="getByUserId" parameterType="java.lang.Integer" resultType="com.inext.entity.AssetRepaymentOrder">
+		SELECT aro.* from asset_repayment_order aro
+		where aro.user_id = #{userId} and aro.order_status!=8
+	</select>
+    <select id="getRepaymentByOrderId" parameterType="java.lang.Integer"
+            resultType="com.inext.entity.AssetRepaymentOrder">
+		SELECT aro.* from asset_repayment_order aro
+		where aro.order_id = #{orderId}
+	</select>
+    <select id="getByOrderId" parameterType="java.lang.Integer" resultType="com.inext.entity.AssetRepaymentOrder">
+		SELECT aro.* from asset_repayment_order aro
+		where aro.order_id = #{orderId}
+	</select>
+    <select id="getList" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT aro.id,aro.user_id,insert(aro.user_phone,4,4, '****')
+        user_phone,aro.user_name,aro.order_id,aro.money_amount,aro.penalty_amount,aro.plan_late_fee,aro.cedit_amount,
+        aro.repayment_amount,aro.repaymented_amount,aro.repayment_type,aro.late_fee_apr,aro.credit_repayment_time,aro.repayment_time,aro.period,aro.repayment_real_time,aro.late_fee_start_time,
+        aro.interest_update_time,aro.late_day,aro.order_status,aro.repayment_pay_status,aro.dk_pay_status,aro.order_renewal,aro.order_mail,aro.no_order,aro.update_time,aro.update_account,
+        aro.seq_id,aro.err_message,
+        IFNULL(rcu.score,'未风控') score,
+        IFNULL(rcu.detail,'') detail,
+        if(u.channelId=0,'自然流量',if(chi.channel_name is not null,chi.channel_name,'未知')) channel_name,
+        CASE aro.order_status
+        WHEN 1 THEN
+        '审核中'
+        WHEN 2 THEN
+        '待放款'
+        WHEN 3 THEN
+        '放款成功'
+        WHEN 4 THEN
+        '放款失败'
+        WHEN 5 THEN
+        '审核拒绝'
+        WHEN 6 THEN
+        '待还款'
+        WHEN 7 THEN
+        '已逾期'
+        WHEN 8 THEN
+        '已还款'
+        WHEN 9 THEN
+        '已续期'
+        WHEN 10 THEN
+        '已寄出'
+        WHEN 11 THEN
+        '检测合格'
+        WHEN 12 THEN
+        '不合格'
+        WHEN 13 THEN
+        '待收款'
+        ELSE
+        '未知'
+        END AS orderStatus,
+        if(aro.repayment_type=1,'邮寄手机',
+        if(aro.repayment_type=2,'后台手工',
+        if(aro.repayment_type=3,'主动支付','代扣'))) as repaymentType ,
+        case when abo.apply_new is null then '否' when abo.apply_new = 1 then '是' when abo.apply_new = '0' then '否' else
+        '否' end isOld,abo.payment_channel,(select description from payment_channel where id = abo.payment_channel)
+        paymentChannelName,
+        <if test="type==8">
+            IF(aro.dk_pay_status=2, aro.seq_id,
+            IF(i.order_id IS NOT NULL, i.order_id,
+            IF(hi.order_id IS NOT NULL, hi.order_id,
+            IF(d.repayment_order_no IS NOT NULL, d.repayment_order_no, '')
+            )
+            )
+            )
+            orderno,
+            IF(aro.dk_pay_status=2, '宝付',
+            IF(i.order_id IS NOT NULL, '宝付',
+            IF(hi.order_id IS NOT NULL, '汇潮',
+            IF(d.repayment_order_no IS NOT NULL, '后台还款', '')
+            )
+            )
+            )
+            repaymentChannel,
+        </if>
+        aro.withhold_id
+        from asset_repayment_order aro
+        inner join borrow_user u on aro.user_id=u.id
+        left join channel_info chi on u.channelId=chi.id
+        LEFT JOIN risk_credit_user rcu on aro.order_id= rcu.asset_id
+        LEFT JOIN asset_borrow_order abo on aro.order_id= abo.id
+        <if test="type==8">
+            LEFT JOIN repayment_info i ON i.asset_id = aro.order_id AND i.is_suc = 1 AND i.type = 1
+            LEFT JOIN hc_repayment_info hi ON hi.asset_id = aro.order_id AND hi.is_suc = 1 AND hi.type =1
+            LEFT JOIN asset_repayment_detail d ON d.order_id = aro.order_id and d.type = 1
+        </if>
+        where 1=1
+        <if test="channelId != null and channelId != -1">
+            and u.channelId = #{channelId}
+        </if>
+        <if test="orderId != null and orderId !=''">
+            and aro.order_id = #{orderId}
+        </if>
+        <if test="userPhone != null and userPhone !=''">
+            and aro.user_phone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and aro.user_name = #{userName}
+        </if>
+        <if test="orderStatus != null and orderStatus !=''">
+            and aro.order_status = #{orderStatus}
+        </if>
+        <if test="repaymentType != null and repaymentType !=''">
+            and aro.repayment_type = #{repaymentType}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            and aro.repayment_time >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            <![CDATA[and aro.repayment_time <= CONCAT(#{endDate},' 23:59:59')]]>
+        </if>
+        <if test="startRepayDate != null and startRepayDate != ''">
+            and <![CDATA[	 DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') >=#{startRepayDate} ]]>
+        </if>
+        <if test="endRepayDate != null and endRepayDate != ''">
+            and <![CDATA[	 DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') <=#{endRepayDate} ]]>
+        </if>
+        <if test="type==6">
+            and aro.order_status in(6,7)
+        </if>
+        <if test="type==7">
+            and aro.order_status in(7)
+        </if>
+        <if test="type==8">
+            and aro.order_status in(8)
+        </if>
+        ORDER BY aro.repayment_time DESC
+    </select>
+    <update id="updateRepaymentByOrderId" parameterType="com.inext.entity.AssetRepaymentOrder">
+		update asset_repayment_order set  order_mail=#{orderMail} where order_id=#{orderId} limit 1
+	</update>
+    <select id="findTaskRepayment" resultType="com.inext.entity.AssetRepaymentOrder" parameterType="map">
+        select
+        a.id
+        from asset_repayment_order a
+        where 1 = 1
+        <if test="statuses != null and statuses != '' and statuses.length > 0">
+            and a.order_status in
+            <foreach item="item" index="index" collection="statuses" open="(" separator="," close=")">
+                ${item}
+            </foreach>
+        </if>
+        <if test="repaymentTimeEnd != null and repaymentTimeEnd != ''">
+            <![CDATA[    and a.repayment_time < #{repaymentTimeEnd}   ]]>
+        </if>
+    </select>
+    <select id="getAssetBorrowOrder" resultType="map" parameterType="map">
+	    SELECT
+			aa.user_phone as userPhone,
+			aa.user_name as userName,
+			aa.late_day as lateDay,
+			aa.repayment_amount as repaymentAmount,
+			u.cardCode
+		FROM
+			asset_repayment_order aa
+		LEFT JOIN borrow_user u ON u.id = aa.user_id
+		WHERE
+		   date_format(aa.repayment_time,'%Y-%m-%d') =
+		   date_add(DATE_FORMAT(NOW(), '%Y%m%d'),INTERVAL ${gapDay} DAY)
+		AND aa.order_status= ${status}
+		ORDER BY
+			aa.repayment_time
+  </select>
+    <update id="updateRepaymentById" parameterType="com.inext.entity.AssetRepaymentOrder">
+        update
+        asset_repayment_order
+        <trim prefix="set" suffixOverrides=",">
+            <if test="userId != null and userId !=''">
+                user_id = #{userId},
+            </if>
+            <if test="userPhone != null and userPhone !=''">
+                user_phone = #{userPhone},
+            </if>
+            <if test="userName != null and userName !=''">
+                user_name = #{userName},
+            </if>
+            <if test="orderId != null and orderId !=''">
+                order_id = #{orderId},
+            </if>
+            <if test="moneyAmount != null and moneyAmount !=''">
+                money_amount = #{moneyAmount},
+            </if>
+            <if test="penaltyAmount != null and penaltyAmount !=''">
+                penalty_amount = #{penaltyAmount},
+            </if>
+            <if test="planLateFee != null and planLateFee !=''">
+                plan_late_fee = #{planLateFee},
+            </if>
+            <if test="repaymentAmount != null and repaymentAmount !=''">
+                repayment_amount = #{repaymentAmount},
+            </if>
+            <if test="repaymentedAmount != null and repaymentedAmount !=''">
+                repaymented_amount = #{repaymentedAmount},
+            </if>
+            <if test="repaymentType != null and repaymentType !=''">
+                repayment_type = #{repaymentType},
+            </if>
+            <if test="lateFeeApr != null and lateFeeApr !=''">
+                late_fee_apr = #{lateFeeApr},
+            </if>
+            <if test="creditRepaymentTime != null">
+                credit_repayment_time = #{creditRepaymentTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="repaymentTime != null">
+                repayment_time = #{repaymentTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="period != null and period !=''">
+                period = #{period},
+            </if>
+            <if test="repaymentRealTime != null">
+                repayment_real_time = #{repaymentRealTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="lateFeeStartTime != null">
+                late_fee_start_time = #{lateFeeStartTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="interestUpdateTime != null">
+                interest_update_time = #{interestUpdateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="lateDay != null and lateDay !=''">
+                late_day = #{lateDay},
+            </if>
+            <if test="orderStatus != null and orderStatus !=''">
+                order_status = #{orderStatus},
+            </if>
+            <if test="orderRenewal != null and orderRenewal !=''">
+                order_renewal = #{orderRenewal},
+            </if>
+            <if test="orderMail != null and orderMail !=''">
+                order_mail = #{orderMail},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateAccount != null and updateAccount !=''">
+                update_account = #{updateAccount},
+            </if>
+            <if test="ceditAmount != null and ceditAmount !=''">
+                cedit_amount = #{ceditAmount},
+            </if>
+        </trim>
+        where id=#{id} limit 1
+    </update>
+    <select id="getRepaymentById" parameterType="java.lang.Integer" resultType="com.inext.entity.AssetRepaymentOrder">
+		SELECT aro.* from asset_repayment_order aro
+		where aro.id = #{id}
+	</select>
+
+    <!-- 代扣总数 -->
+    <select id="calculationDKOrderNum" resultType="java.lang.Integer"
+            parameterType="com.inext.dto.AssetRepaymentOrderDto">
+        SELECT
+        COUNT(1)
+        FROM
+        asset_repayment_order r
+        WHERE
+        r.order_status in
+        <foreach item="item" index="index" collection="statuses" open="(" separator="," close=")">
+            ${item}
+        </foreach>
+        AND r.repayment_time <![CDATA[ <= ]]> #{withholdingTime}
+        AND r.dk_pay_status in(0,3)
+        ORDER BY r.id
+    </select>
+    <!--   代扣list -->
+    <select id="getDKList" resultType="com.inext.entity.AssetRepaymentOrder"
+            parameterType="com.inext.dto.AssetRepaymentOrderDto">
+        SELECT
+        r.*
+        FROM
+        asset_repayment_order r
+        WHERE
+        r.order_status in
+        <foreach item="item" index="index" collection="statuses" open="(" separator="," close=")">
+            ${item}
+        </foreach>
+        AND r.repayment_time <![CDATA[ <= ]]> #{withholdingTime}
+        AND r.dk_pay_status in(0,3)
+        ORDER BY r.id
+    </select>
+
+    <select id="getEffectCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        asset_repayment_order
+        where
+        user_id = #{userId}
+        AND order_status = 8
+        AND TIMESTAMPDIFF(DAY,credit_repayment_time,repayment_real_time) <![CDATA[ >= ]]> #{intervalDays}
+    </select>
+
+    <select id="yuyiYihuankuanOrder" resultType="com.inext.entity.AssetRepaymentOrder" parameterType="map">
+		SELECT * from
+		asset_repayment_order
+		where
+		order_status in (7,12)and  late_day = 1
+	</select>
+
+    <select id="findRaymentedHuanKuan" resultType="com.inext.entity.AssetRepaymentOrder" parameterType="map">
+		SELECT * from
+		asset_repayment_order
+		where
+		order_status = 8 AND
+		late_day != 0 AND
+		repayment_real_time <![CDATA[ >= ]]> DATE_FORMAT(DATE_ADD(#{repaymentTimeEnd},INTERVAL -20 MINUTE),
+		'%Y-%m-%d %H:%i:%S')  AND
+        repayment_real_time <![CDATA[ <= ]]> DATE_FORMAT(#{repaymentTimeEnd},'%Y-%m-%d %H:%i:%S')
+	</select>
+
+    <select id="currentTimeOrder" resultType="com.inext.entity.AssetRepaymentOrder" parameterType="map">
+		select *  from asset_repayment_order where order_status in(3,9,12)
+		and DATE_FORMAT(repayment_time,"%Y-%m-%d") =  DATE_FORMAT(#{repaymentTime}, "%Y-%m-%d")
+		ORDER BY repayment_time DESC
+	</select>
+
+    <select id="pushCuishouNotOverdue" resultType="com.inext.entity.AssetRepaymentOrder" parameterType="map">
+		SELECT * from
+		asset_repayment_order aro
+		where
+		aro.order_status in (8)
+		AND
+        aro.repayment_real_time <![CDATA[ >= ]]> DATE_FORMAT(DATE_ADD(#{repaymentTimeEnd},INTERVAL -15 MINUTE),
+		'%Y-%m-%d %H:%i:%S')  AND
+        aro.repayment_real_time <![CDATA[ <= ]]> DATE_FORMAT(#{repaymentTimeEnd}, '%Y-%m-%d %H:%i:%S')
+	</select>
+
+    <!--查询记录是否存在-->
+    <select id="selectCountByHand" resultType="com.inext.entity.AssetRepaymentOrder" parameterType="map">
+        select * from asset_repayment_order
+        <where>
+            order_id = #{orderId}
+            and user_phone = #{userPhone}
+            and order_status in (8,9)
+            and late_day = 0
+        </where>
+    </select>
+
+    <resultMap id="BaseResultMap" type="com.inext.dto.AssetRepaymentOrderByWithholdDto">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="user_phone" property="userPhone" jdbcType="VARCHAR"/>
+        <result column="user_name" property="userName" jdbcType="VARCHAR"/>
+        <result column="order_id" property="orderId" jdbcType="INTEGER"/>
+        <result column="money_amount" property="moneyAmount" jdbcType="DECIMAL"/>
+        <result column="penalty_amount" property="penaltyAmount" jdbcType="DECIMAL"/>
+        <result column="plan_late_fee" property="planLateFee" jdbcType="DECIMAL"/>
+        <result column="cedit_amount" property="ceditAmount" jdbcType="DECIMAL"/>
+        <result column="repayment_amount" property="repaymentAmount" jdbcType="DECIMAL"/>
+        <result column="repaymented_amount" property="repaymentedAmount" jdbcType="DECIMAL"/>
+        <result column="repayment_time" property="repaymentTime" jdbcType="TIMESTAMP"/>
+        <result column="late_fee_apr" property="lateFeeApr" jdbcType="DECIMAL"/>
+
+        <result column="repayment_type" property="repaymentType" jdbcType="INTEGER"/>
+        <result column="credit_repayment_time" property="creditRepaymentTime" jdbcType="TIMESTAMP"/>
+        <result column="period" property="period" jdbcType="INTEGER"/>
+        <result column="repayment_real_time" property="repaymentRealTime" jdbcType="TIMESTAMP"/>
+        <result column="late_fee_start_time" property="lateFeeStartTime" jdbcType="TIMESTAMP"/>
+        <result column="interest_update_time" property="interestUpdateTime" jdbcType="TIMESTAMP"/>
+        <result column="late_day" property="lateDay" jdbcType="INTEGER"/>
+        <result column="order_status" property="orderStatus" jdbcType="INTEGER"/>
+
+
+        <result column="dk_pay_status" property="dkPayStatus" jdbcType="INTEGER"/>
+        <result column="order_renewal" property="orderRenewal" jdbcType="INTEGER"/>
+        <result column="order_mail" property="orderMail" jdbcType="INTEGER"/>
+        <result column="no_order" property="noOrder" jdbcType="VARCHAR"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="update_account" property="updateAccount" jdbcType="VARCHAR"/>
+        <result column="seq_id" property="seqId" jdbcType="VARCHAR"/>
+        <result column="err_message" property="errMessage"/>
+        <result column="bank_code" property="bankCode" jdbcType="VARCHAR"/>
+        <result column="bank_name" property="bankName" jdbcType="VARCHAR"/>
+
+        <result column="cardCode" property="cardCode" jdbcType="VARCHAR"/>
+        <result column="cardPhone" property="cardPhone" jdbcType="VARCHAR"/>
+        <result column="cardType" property="cardType" jdbcType="INTEGER"/>
+    </resultMap>
+
+
+    <select id="getListByWithhold" parameterType="java.util.Map" resultMap="BaseResultMap">
+        select aro.*,ub.bank_code,ub.bank_name,ub.cardCode,ub.userCardNo,ub.cardType from asset_repayment_order aro
+            LEFT JOIN (
+                select u.id as user_id,b.bank_code,b.bank_name,u.cardCode,u.userCardNo,u.cardType
+                from borrow_user u
+                LEFT JOIN bank_all_info b
+                on u.cardType = b.id) ub
+            on ub.user_id=aro.user_id
+        where
+        <![CDATA[ DATE_FORMAT(aro.repayment_time,'%Y-%m-%d') <= #{repaymentTime} ]]>
+       and aro.order_status in(6,7,12)
+        and aro.dk_pay_status in(0,3)
+
+        ORDER BY aro.repayment_time DESC
+    </select>
+
+    <update id="updateRepaymentByIdWithhold">
+        update
+        asset_repayment_order
+        <trim prefix="set" suffixOverrides=",">
+            <if test="withholdId">
+                withhold_id = #{withholdId},
+            </if>
+            <if test="dkPayStatus != null">
+                dk_pay_status = #{dkPayStatus},
+            </if>
+            <if test="repaymentPayStatus != null">
+                repayment_pay_status = #{repaymentPayStatus},
+            </if>
+            <if test="errMessage != null and errMessage !=''">
+                err_message = #{errMessage},
+            </if>
+        </trim>
+        WHERE
+        id in
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">#{item,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+
+    <resultMap id="BaseResultOrderMap" type="com.inext.entity.AssetRepaymentOrder">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="user_phone" property="userPhone" jdbcType="VARCHAR"/>
+        <result column="user_name" property="userName" jdbcType="VARCHAR"/>
+        <result column="order_id" property="orderId" jdbcType="INTEGER"/>
+        <result column="money_amount" property="moneyAmount" jdbcType="DECIMAL"/>
+        <result column="penalty_amount" property="penaltyAmount" jdbcType="DECIMAL"/>
+        <result column="plan_late_fee" property="planLateFee" jdbcType="DECIMAL"/>
+        <result column="cedit_amount" property="ceditAmount" jdbcType="DECIMAL"/>
+        <result column="repayment_amount" property="repaymentAmount" jdbcType="DECIMAL"/>
+        <result column="repaymented_amount" property="repaymentedAmount" jdbcType="DECIMAL"/>
+        <result column="repayment_time" property="repaymentTime" jdbcType="TIMESTAMP"/>
+        <result column="late_fee_apr" property="lateFeeApr" jdbcType="DECIMAL"/>
+
+        <result column="repayment_type" property="repaymentType" jdbcType="INTEGER"/>
+        <result column="credit_repayment_time" property="creditRepaymentTime" jdbcType="TIMESTAMP"/>
+        <result column="period" property="period" jdbcType="INTEGER"/>
+        <result column="repayment_real_time" property="repaymentRealTime" jdbcType="TIMESTAMP"/>
+        <result column="late_fee_start_time" property="lateFeeStartTime" jdbcType="TIMESTAMP"/>
+        <result column="interest_update_time" property="interestUpdateTime" jdbcType="TIMESTAMP"/>
+        <result column="late_day" property="lateDay" jdbcType="INTEGER"/>
+        <result column="order_status" property="orderStatus" jdbcType="INTEGER"/>
+
+
+        <result column="dk_pay_status" property="dkPayStatus" jdbcType="INTEGER"/>
+        <result column="order_renewal" property="orderRenewal" jdbcType="INTEGER"/>
+        <result column="order_mail" property="orderMail" jdbcType="INTEGER"/>
+        <result column="no_order" property="noOrder" jdbcType="VARCHAR"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="update_account" property="updateAccount" jdbcType="VARCHAR"/>
+        <result column="seq_id" property="seqId" jdbcType="VARCHAR"/>
+        <result column="err_message" property="errMessage"/>
+    </resultMap>
+
+    <select id="getListByRepaymentOrder" resultMap="BaseResultOrderMap"
+            parameterType="map">
+        SELECT * FROM asset_repayment_order WHERE withhold_id = #{withholdId}
+    </select>
+    <!--重复扣款、代扣续期查询-->
+    <select id="getAbnormalPageList" parameterType="java.util.Map" resultType="com.inext.entity.AssetRepaymentOrder">
+        SELECT
+        aro.id,
+        aro.order_id,
+        aro.user_id,
+        aro.user_name,
+        aro.user_phone,
+        aro.credit_repayment_time,
+        aro.repayment_time,
+        bank.bank_name,
+        u.cardCode,
+        aro.dk_pay_status,
+        aro.seq_id AS dkorderno,
+        aro.repayment_real_time dktime,
+        IF
+        (
+        ri.order_id IS NOT NULL ,ri.order_id ,if(rix.order_id IS NOT NULL,rix.order_id,'')
+        ) AS hlorderno,
+        IF
+        (
+        ri.update_time IS NOT NULL ,ri.update_time ,if(rix.update_time IS NOT NULL,rix.update_time,null)
+        ) AS hltime,
+        IF
+        (
+        hc.order_id IS NOT NULL ,hc.order_id ,if(hcx.order_id IS NOT NULL,hcx.order_id,'')
+        ) AS hcorderNo,
+        IF
+        (
+        hc.update_time IS NOT NULL ,hc.update_time ,if(hcx.update_time IS NOT NULL,hcx.update_time,null)
+        ) AS hcxtime,
+        IF
+        (
+        ri.order_id IS NOT NULL
+        OR hc.order_id IS NOT NULL,
+        1,
+        IF
+        ( rix.order_id IS NOT NULL OR hcx.order_id IS NOT NULL, 2, '' )
+        ) AS issue,
+        abnormal_order.refund_bank,
+        abnormal_order.refund_card_no,
+        abnormal_order.refund_order_no,
+        abnormal_order.amount,
+        abnormal_order.remark,
+        back_user.nick_name AS creater,
+        abnormal_order.creat_time
+        FROM
+        asset_repayment_order AS aro
+        LEFT JOIN ( SELECT * FROM repayment_info AS ri WHERE ri.type = 1 AND ri.is_suc = 1 ) ri ON aro.order_id =
+        ri.asset_id
+        LEFT JOIN ( SELECT * FROM hc_repayment_info AS hc WHERE hc.type = 1 AND hc.is_suc = 1 ) hc ON aro.order_id =
+        hc.asset_id
+        LEFT JOIN ( SELECT * FROM repayment_info AS ri WHERE ri.type = 2 AND ri.is_suc = 1 ) rix ON aro.order_id =
+        rix.asset_id
+        LEFT JOIN ( SELECT * FROM hc_repayment_info AS hc WHERE hc.type = 2 AND hc.is_suc = 1 ) hcx ON aro.order_id =
+        hcx.asset_id
+        INNER JOIN borrow_user AS u ON aro.user_id = u.id
+        LEFT JOIN bank_all_info AS bank ON u.cardType = bank.id
+        LEFT JOIN abnormal_order on aro.order_id = abnormal_order.order_id
+        LEFT JOIN back_user on back_user.id = abnormal_order.operator
+        WHERE
+        aro.order_status = 8
+        AND aro.dk_pay_status = 2
+        AND (
+        ( ri.order_id IS NOT NULL OR hc.order_id IS NOT NULL )
+        OR ( rix.order_id IS NOT NULL OR hcx.order_id IS NOT NULL )
+        )
+        <if test="searchOrderId != null and searchOrderId != -1">
+            and aro.order_id = #{searchOrderId}
+        </if>
+        <if test="userPhone != null and userPhone != -1">
+            and aro.user_phone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and aro.user_name = #{userName}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            and aro.repayment_time >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            <![CDATA[and aro.repayment_time <= CONCAT(#{endDate},' 23:59:59')]]>
+        </if>
+        <if test="type==1">
+            AND aro.order_id not in (SELECT order_id from abnormal_order)
+        </if>
+        <if test="type==2">
+            AND aro.order_id in (SELECT order_id from abnormal_order)
+        </if>
+    </select>
+
+
+    <select id="getAbnormalList" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        aro.id,
+        aro.order_id,
+        aro.user_id,
+        aro.user_name,
+        aro.user_phone,
+        aro.credit_repayment_time,
+        aro.repayment_time,
+        bank.bank_name,
+        u.cardCode,
+        aro.dk_pay_status,
+        aro.seq_id ,
+        aro.repayment_real_time,
+        IF
+        (
+        ri.order_id IS NOT NULL ,ri.order_id ,if(rix.order_id IS NOT NULL,rix.order_id,'')
+        ) AS hlOrderNo,
+        IF
+        (
+        ri.update_time IS NOT NULL ,ri.update_time ,if(rix.update_time IS NOT NULL,rix.update_time,'')
+        ) AS hlTime,
+        IF
+        (
+        hc.order_id IS NOT NULL ,hc.order_id ,if(hcx.order_id IS NOT NULL,hcx.order_id,'')
+        ) AS hcOrderNo,
+        IF
+        (
+        hc.update_time IS NOT NULL ,hc.update_time ,if(hcx.update_time IS NOT NULL,hcx.update_time,'')
+        ) AS hcxtime,
+        IF
+        (
+        ri.order_id IS NOT NULL
+        OR hc.order_id IS NOT NULL,
+        '重复扣款',
+        IF
+        ( rix.order_id IS NOT NULL OR hcx.order_id IS NOT NULL, '代扣后续期', '' )
+        ) AS issue,
+        abnormal_order.refund_bank,
+        abnormal_order.refund_card_no,
+        abnormal_order.refund_order_no,
+        abnormal_order.remark,
+        abnormal_order.amount,
+        abnormal_order.creat_time,
+        back_user.nick_name,
+        bank_all_info.bank_name as refundBankName
+        FROM
+        asset_repayment_order AS aro
+        LEFT JOIN ( SELECT * FROM repayment_info AS ri WHERE ri.type = 1 AND ri.is_suc = 1 ) ri ON aro.order_id =
+        ri.asset_id
+        LEFT JOIN ( SELECT * FROM hc_repayment_info AS hc WHERE hc.type = 1 AND hc.is_suc = 1 ) hc ON aro.order_id =
+        hc.asset_id
+        LEFT JOIN ( SELECT * FROM repayment_info AS ri WHERE ri.type = 2 AND ri.is_suc = 1 ) rix ON aro.order_id =
+        rix.asset_id
+        LEFT JOIN ( SELECT * FROM hc_repayment_info AS hc WHERE hc.type = 2 AND hc.is_suc = 1 ) hcx ON aro.order_id =
+        hcx.asset_id
+        INNER JOIN borrow_user AS u ON aro.user_id = u.id
+        LEFT JOIN bank_all_info AS bank ON u.cardType = bank.id
+        LEFT JOIN abnormal_order on aro.order_id=abnormal_order.order_id
+        left join back_user on back_user.id=abnormal_order.operator
+        left JOIN bank_all_info on bank_all_info.bank_code=abnormal_order.refund_bank
+        WHERE
+        aro.order_status = 8
+        AND dk_pay_status = 2
+        AND aro.dk_pay_status = 2
+        AND (
+        ( ri.order_id IS NOT NULL OR hc.order_id IS NOT NULL )
+        OR ( rix.order_id IS NOT NULL OR hcx.order_id IS NOT NULL )
+        )
+        <if test="searchOrderId != null and searchOrderId != -1">
+            and aro.order_id = #{searchOrderId}
+        </if>
+        <if test="userPhone != null and userPhone != -1">
+            and aro.user_phone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and aro.user_name = #{userName}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            and aro.repayment_time >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            <![CDATA[and aro.repayment_time <= CONCAT(#{endDate},' 23:59:59')]]>
+        </if>
+
+    </select>
+
+    <select id="getFlowPageList" parameterType="java.util.Map" resultType="com.inext.entity.AssetRepaymentOrder">
+                SELECT
+                aa.orderId,
+                u.userName,
+                u.userPhone,
+                u.cardCode,
+                u.id userId,
+                bank.bank_name,
+                asro.money_amount moneyAmount,
+                aa.req_amt req_amt,
+                asro.repaymented_amount repaymentedAmount,
+                aa.MOrderId noOrder,
+                aa.create_time updateTime,
+                asro.repayment_time repaymentTime,
+                asro.penalty_amount,
+                asro.plan_late_fee,
+                asro.repayment_amount,
+                asro.cedit_amount,
+                abo.payment_channel paymentChannel,
+                if(aa.refundType=5 ,aa.refundType,asro.repayment_type)  repaymentType,
+                aa.repaymentChannel repaymentChannel,
+                aa.type payType,
+                if(abnormal_order.refund_bank='zhiFuBao','支付宝',bank_all_info.bank_name) refundBankName,
+                abnormal_order.refund_channel,
+                abnormal_order.refund_bank,
+                abnormal_order.refund_card_no,
+                abnormal_order.refund_order_no,
+                abnormal_order.remark,
+                abnormal_order.amount,
+                abnormal_order.creat_time creatTime,
+                abnormal_order.issue,
+                if(back_user.nick_name='',back_user.account,back_user.nick_name)nick_name
+                FROM
+                 asset_repayment_order asro join
+                (
+                   SELECT ri.asset_id orderId, ri.req_amt, ri.order_id MOrderId, ri.update_time create_time, '2' AS repaymentChannel ,ri.type ,'3' as refundType FROM repayment_info ri WHERE ri.is_suc = 1
+                UNION
+                  SELECT hc.asset_id orderId, hc.req_amt, hc.order_id MOrderId, hc.update_time create_time, '3' AS repaymentChannel,hc.type,'3' as refundType  FROM  hc_repayment_info hc WHERE hc.is_suc = 1
+                UNION
+                  SELECT ard.order_id orderId, ard.true_repayment_money req_amt, ard.repayment_order_no MOrderId, ard.created_at create_time,  ard.repayment_type + 3 as repaymentChannel ,ard.type ,'5' as refundType FROM asset_repayment_detail ard where ard.repayment_channel=2
+                UNION
+                  SELECT ard.order_id orderId, ard.true_repayment_money req_amt, ard.repayment_order_no MOrderId, ard.created_at create_time, ard.repayment_type + 3 as repaymentChannel ,ard.type,'2' as refundType FROM asset_repayment_detail ard where ard.repayment_channel in (1,3)
+                ) aa  ON aa.orderId = asro.order_id
+                INNER JOIN asset_borrow_order abo ON aa.orderId = abo.id
+                INNER JOIN borrow_user u ON asro.user_id = u.id
+                LEFT JOIN bank_all_info AS bank ON u.cardType = bank.id
+                LEFT JOIN channel_info chi ON u.channelId = chi.id
+                LEFT JOIN abnormal_order on abnormal_order.repayment_order_no=aa.MOrderId
+                left join back_user on back_user.id=abnormal_order.operator
+                left JOIN bank_all_info on bank_all_info.bank_code=abnormal_order.refund_bank
+                WHERE 1=1
+                <if test="searchOrderId != null and searchOrderId != -1">
+                    and aa.orderId = #{searchOrderId}
+                </if>
+                <if test="userPhone != null and userPhone != -1">
+                    and asro.user_phone = #{userPhone}
+                </if>
+                <if test="userName != null and userName !=''">
+                    and asro.user_name = #{userName}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    and aa.create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    <![CDATA[and  aa.create_time <= CONCAT(#{endDate},' 23:59:59')]]>
+                </if>
+                <if test="refundNoOrder != null and refundNoOrder != ''">
+                    and  aa.MOrderId = #{refundNoOrder}
+                </if>
+                <if test="searchType==1">
+                    AND not  EXISTS (SELECT repayment_order_no from abnormal_order where abnormal_order.repayment_order_no = aa.MOrderId )
+                </if>
+                <if test="searchType==2">
+                    AND  EXISTS (SELECT repayment_order_no from abnormal_order where abnormal_order.repayment_order_no = aa.MOrderId )
+                </if>
+                ORDER BY
+                aa.orderId DESC
+    </select>
+
+
+    <select id="getCapitalFlowList" parameterType="java.util.Map" resultType="java.util.Map">
+                SELECT
+                aa.orderId,
+                u.userName,
+                REPLACE(u.userPhone,SUBSTR(u.userPhone,4,4), '****') as userPhone,
+                u.cardCode,
+                u.id userId,
+                bank.bank_name,
+                asro.money_amount moneyAmount,
+                aa.req_amt repaymentedAmount,
+                asro.repaymented_amount cumulative_repayment_amount,
+                asro.penalty_amount,
+                asro.plan_late_fee,
+                asro.repayment_amount,
+                asro.cedit_amount,
+                aa.MOrderId noOrder,
+                aa.create_time updateTime,
+                asro.repayment_time repaymentTime,
+                if(abo.payment_channel=1,"合利宝",if(abo.payment_channel=2,"合利宝D1",if(abo.payment_channel=3,"口袋",if(abo.payment_channel=4,"汇潮","宝付")))) paymentChannel,
+                if(aa.refundType=5,"线下支付",if(asro.repayment_type=2,"后台手工",if(asro.repayment_type=3 ,"主动支付","代扣"))) repaymentType,
+                if(aa.repaymentChannel=1,"宝付",if(aa.repaymentChannel=2,"宝付",if(aa.repaymentChannel=3,"汇潮",if(aa.repaymentChannel=4,"支付宝",if(aa.repaymentChannel=5,"银行卡对公",if(aa.repaymentChannel=6,"银行卡自动扣款",if(aa.repaymentChannel=7,"对公银行卡转账","")))))))
+                repaymentChannel,
+                if(aa.type=1,"还款",if(aa.type=2,"续期","")) payType,
+                if(abnormal_order.refund_channel=1,'支付宝',if(abnormal_order.refund_channel=2,'银行卡对公','')) refund_channel,
+                if(abnormal_order.refund_bank='zhiFuBao','支付宝',bank_all_info.bank_name) refundBankName,
+                abnormal_order.refund_bank,
+                abnormal_order.refund_card_no,
+                abnormal_order.refund_order_no,
+                abnormal_order.remark,
+                abnormal_order.amount,
+                abnormal_order.creat_time creatTime,
+                if(abnormal_order.issue=1,"重复还款",if(abnormal_order.issue=2,"还款后续期",if(abnormal_order.issue=3,"其他",""))) issue,
+                abnormal_order.issue,
+                if(back_user.nick_name='',back_user.account,back_user.nick_name)nick_name
+                FROM
+                (
+                   SELECT ri.asset_id orderId, ri.req_amt, ri.order_id MOrderId, ri.update_time create_time, '2' AS repaymentChannel ,ri.type ,'3' as refundType FROM repayment_info ri WHERE ri.is_suc = 1
+                UNION
+                  SELECT hc.asset_id orderId, hc.req_amt, hc.order_id MOrderId, hc.update_time create_time, '3' AS repaymentChannel,hc.type,'3' as refundType  FROM  hc_repayment_info hc WHERE hc.is_suc = 1
+                UNION
+                  SELECT ard.order_id orderId, ard.true_repayment_money req_amt, ard.repayment_order_no MOrderId, ard.created_at create_time,  ard.repayment_type + 3 as repaymentChannel ,ard.type ,'5' as refundType FROM asset_repayment_detail ard where ard.repayment_channel=2
+                UNION
+                  SELECT ard.order_id orderId, ard.true_repayment_money req_amt, ard.repayment_order_no MOrderId, ard.created_at create_time, ard.repayment_type + 3 as repaymentChannel ,ard.type ,'2' as refundType FROM asset_repayment_detail ard where ard.repayment_channel in (1,3)
+                ) aa
+                JOIN asset_repayment_order asro ON aa.orderId = asro.order_id
+                INNER JOIN asset_borrow_order abo ON aa.orderId = abo.id
+                INNER JOIN borrow_user u ON asro.user_id = u.id
+                LEFT JOIN bank_all_info AS bank ON u.cardType = bank.id
+                LEFT JOIN channel_info chi ON u.channelId = chi.id
+                LEFT JOIN abnormal_order on abnormal_order.repayment_order_no=aa.MOrderId
+                left join back_user on back_user.id=abnormal_order.operator
+                left JOIN bank_all_info on bank_all_info.bank_code=abnormal_order.refund_bank
+                WHERE 1=1
+                <if test="searchOrderId != null and searchOrderId != -1">
+                    and aa.orderId = #{searchOrderId}
+                </if>
+                <if test="userPhone != null and userPhone != -1">
+                    and asro.user_phone = #{userPhone}
+                </if>
+                <if test="userName != null and userName !=''">
+                    and asro.user_name = #{userName}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    and aa.create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    <![CDATA[and  aa.create_time <= CONCAT(#{endDate},' 23:59:59')]]>
+                </if>
+                <if test="refundNoOrder != null and refundNoOrder != ''">
+                    and  aa.MOrderId = #{refundNoOrder}
+                </if>
+                <if test="searchType==1">
+                    AND not  EXISTS (SELECT repayment_order_no from abnormal_order where abnormal_order.repayment_order_no = aa.MOrderId )
+                </if>
+                <if test="searchType==2">
+                    AND  EXISTS (SELECT repayment_order_no from abnormal_order where abnormal_order.repayment_order_no = aa.MOrderId )
+                </if>
+                ORDER BY
+                aa.orderId DESC
+    </select>
+
+    <update id="updateCeditAndRepaymented" >
+		update asset_repayment_order set cedit_amount=cedit_amount+ #{amount},repaymented_amount=repaymented_amount- #{amount} where order_id= #{orderId} limit 1
+	</update>
+
+    <!--查询用户逾期/逾期还款记录-->
+    <select id="getRepaymentExpiredCount" parameterType="int" resultType="int">
+        SELECT IFNULL(COUNT(*), 0) FROM
+            asset_repayment_order
+        WHERE
+         user_id =#{userId}
+        AND(order_status=7 OR
+         (order_status=8 AND repayment_real_time > repayment_time)
+         )
+    </select>
+        </mapper>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="x5-fullscreen" content="true"/>
+    <meta name="full-screen" content="yes"/>
+    <meta http-equiv="Expires" content="-1"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Cache-Control" content="no-cache"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+    <title>下款神器</title>
+
+    <script type="text/javascript">
+      document.documentElement.style.fontSize = 100 * innerWidth / 750 + 'px';
+      addEventListener('load', function() {
+        setTimeout(function(){
+          document.documentElement.style.fontSize = 100 * innerWidth / 750 + 'px';
+        }, 480);
+        var isInApp = (window.self != window.top);
+        if (!isInApp) {
+          window.parent.postMessage({name: 'web:inject', token: Math.random().toString(), usertype: 1}, '*');
+        }
+      });
+    </script>
+
+    <style>
+      *{
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+      html,body{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+        width: 100%;
+        height: 100%;
+        background: #fe3b3c;
+      }
+      .download-wrap{
+        position:relative;
+        width:100%;
+        height:13.34rem;
+        background:url("/images/tg/hxxDownBg.png") no-repeat center;
+        background-size: 100% 100%;
+
+      }
+      .downloadBtn{
+        position: absolute;
+        top: 7.15rem;
+        left: 50%;
+        margin-left: -3rem;
+        width: 6rem;
+        height: 0.9rem;
+        background: url("/images/tg/hxxDownBtn.png") no-repeat center;
+        background-size: 100% 100%;
+        border: 0;
+      }
+      .androidShadow{
+        position: fixed;
+        top:0;
+        left:0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 999999;
+        display: none;
+      }
+      .androidShadow i{
+        position: absolute;
+        right: -0.1rem;
+        top: -0.44rem;
+        display: block;
+        height: 2rem;
+        width: 2rem;
+        background: url("/images/tg/arrowRight.png") no-repeat center;
+        background-size: 40% 40%;
+      }
+      .androidShadow p{
+        font-size: 0.28rem;
+        color: #ffffff;
+        text-align: right;
+        padding-right: 0.3rem;
+        margin-top: 1rem;
+      }
+      .guideShadow{
+        position: fixed;
+        bottom:0;
+        left:0;
+        width: 100%;
+        height: 12.06rem;
+        background: url("/images/tg/hxxGuildBg1.png") no-repeat center;
+        background-size: 100% 100%;
+        z-index: 9999;
+      }
+      .guideShadow .confirmBtn{
+        position: absolute;
+        left: 50%;
+        margin-left: -2.1rem;
+        bottom: 0.88rem;
+        width: 4.2rem;
+        height: 0.76rem;
+        border: 0.02rem solid #F74D0A;
+        border-radius: 0.1rem;
+        font-size: 0.28rem;
+        color: #F74D0A;
+        background: none;
+        text-align: center;
+        line-height: 0.76rem;
+        text-decoration: none;
+      }
+      .iosShadow{
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin: -1rem 0 0 -2.5rem;
+        width: 5rem;
+        height: 2rem;
+        background: rgba(0,0,0,0.7);
+        border-radius: 0.2rem;
+        font-size: 0.28rem;
+        color: #ffffff;
+        padding: 0.4rem 0.2rem 0.2rem;
+        z-index: 999999;
+        box-sizing: border-box;
+      }
+    </style>
+
+  </head>
+  <body>
+    <div class="download-wrap">
+      <!--<a th:href="@{${iosUrl}}" class="download download-ios">ios 下载</a>
+      <a th:href="@{${androidUrl}}" class="download download-android">安卓 下载</a>-->
+
+      <!-- 获取安卓iOS链接地址 -->
+      <input type="hidden" name="channelCode" th:value="${androidUrl}" id="getAndroidVal"/>
+      <button class="downloadBtn"></button>
+    </div>
+
+    <!-- 安卓微信打开时，遮罩层提示 -->
+    <div class="androidShadow">
+      <div class="contentView">
+        <i></i>
+        <p>请使用浏览器打开哦！</p>
+      </div>
+    </div>
+
+    <!-- ios非Safari打开时，遮罩层提示 -->
+    <div class="iosShadow" style="display: none;">如若安装失败，请用其他浏览器进行下载</div>
+
+    <!-- 如果是iOS，点击下载安装，弹出指示弹层 -->
+    <div class="guideShadow" style="display: none;">
+      <a th:href="'itms-services://?action=download-manifest&amp;url='+@{${iosUrl}}" class="confirmBtn">我知道了</a>
+    </div>
+  </body>
+
+  <script type="text/javascript" th:src ="@{/js/jquery-1.9.1.min.js}"></script>
+  <script type="text/javascript">
+    $(function(){
+      $(".downloadBtn").click(function(){
+
+        /* 判断是否是iOS或者Android */
+        var u = navigator.userAgent, app = navigator.appVersion;
+        var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+        var isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+        var wx = (function () {
+                  return navigator.userAgent.toLowerCase().indexOf('micromessenger') !== -1
+                }
+        )();
+
+        //这个是安卓操作系统
+        if (isAndroid) {
+          //判断是否是微信内部打开
+          if (wx) {
+            $(".androidShadow").show();
+            $(".androidShadow").click(function(){
+              $(this).hide();
+            });
+
+          } else {
+            window.location.href = $("#getAndroidVal").val();
+          }
+
+        }
+
+        //这个是ios操作系统
+        if (isIOS) {
+
+          $(".guideShadow").show();
+
+          $(".confirmBtn").click(function(){
+            //$(this).attr('href','itms-services://?action=download-manifest&amp;url=http://dev-img.hxx368.com/download/ios/app/huaxiaoxia.plist');
+
+            if (!wx) {
+              $('.iosShadow').show ().delay (3000).fadeOut ();
+            }
+
+          });
+
+
+        }
+
+      });
+    })
+
+  </script>
+</html>

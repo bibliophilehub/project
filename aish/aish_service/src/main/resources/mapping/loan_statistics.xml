@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.ILoanStatisticsDao">
+    <select id="getLoanStatistics" resultType="Map" parameterType="Map">
+	    select 
+			    DATE_FORMAT(ord.order_time, '%Y-%m-%d')  as applyTime,
+			    COUNT(IF (ord.apply_new=0,true,null)) as newApplyQuantity,
+		        COUNT(	IF (ord.apply_new=0,IF (ord.status <![CDATA[ <> ]]> 1, IF (ord.status <![CDATA[ <> ]]>  5, TRUE, NULL),NULL ),NULL)	) AS newAuditQuantity,
+		        CONCAT(ROUND(COUNT(	IF (ord.apply_new=0,IF (ord.status <![CDATA[ <> ]]> 1, IF (ord.status <![CDATA[ <> ]]>  5, TRUE, NULL),NULL ),NULL)	)/COUNT(IF (ord.apply_new=0,true,null))*100, 2),'%') as newRate,
+			    COUNT(IF (ord.apply_new=1,true,null)) as oldApplyQuantity,
+		        COUNT(	IF (ord.apply_new=1,IF (ord.status <![CDATA[ <> ]]> 1, IF (ord.status <![CDATA[ <> ]]>  5, TRUE, NULL),NULL ),NULL)	) AS oldAuditQuantity,
+		        CONCAT(ROUND(COUNT(	IF (ord.apply_new=1,IF (ord.status <![CDATA[ <> ]]> 1, IF (ord.status <![CDATA[ <> ]]>  5, TRUE, NULL),NULL ),NULL)	)/COUNT(IF (ord.apply_new=1,true,null))*100, 2),'%') as oldRate,
+		        COUNT(	IF (ord.status <![CDATA[ <> ]]> 1, IF (ord.status <![CDATA[ <> ]]>  5, TRUE, NULL),NULL )	) AS auditQuantity,
+				FORMAT(SUM(	IF (ord.status <![CDATA[ <> ]]>  1, IF (ord.status <![CDATA[ <> ]]>  5, ord.per_pay_money, 0),0 ))/10000,2) AS loanMoneyCount,
+				FORMAT(SUM(	IF (ord.status <![CDATA[ <> ]]>  1, IF (ord.status <![CDATA[ <> ]]>  2, IF (ord.status <![CDATA[ <> ]]>  4, IF (ord.status <![CDATA[ <> ]]>  5, ord.per_pay_money, 0), 0), 0),0 ))/10000,2) AS loanMoneyCountSuccess,
+		        COUNT(	IF (ord.status =4,TRUE,NULL )	) AS loanFail,
+					  CONCAT(
+							CONVERT (
+								 COUNT(	IF (ord.status <![CDATA[ <> ]]>  1, IF (ord.status <![CDATA[ <> ]]>  5, TRUE, NULL),NULL )	) *100 /COUNT(ord.id),
+									DECIMAL (18, 2)
+								),
+								'%'
+				      )  as  rate
+		 from asset_borrow_order ord
+		 inner join borrow_user u on  ord.user_id=u.id
+		 where
+		     DATE_FORMAT(ord.order_time, '%Y-%m-%d') <![CDATA[ < ]]>DATE_FORMAT(now(), '%Y-%m-%d')
+		    <if test="startDate != null">
+				<![CDATA[ and DATE_FORMAT(ord.order_time,'%Y-%m-%d') >=  #{startDate} ]]>
+			</if>
+			<if test="endDate != null">
+				<![CDATA[ and DATE_FORMAT(ord.order_time,'%Y-%m-%d') <=  #{endDate} ]]>
+			</if>
+			<if test="channelId != null and channelId != -1">
+				and u.channelId=#{channelId}
+			</if>
+         
+		 GROUP BY
+		           DATE_FORMAT(ord.order_time, '%Y-%m-%d') 
+		        ORDER BY ord.order_time desc 
+			
+    </select>
+
+</mapper>

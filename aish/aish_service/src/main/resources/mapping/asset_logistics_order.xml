@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.inext.dao.IAssetLogisticsOrderDao">
+	<select id="getPageList" parameterType="java.util.Map" resultType="com.inext.entity.AssetLogisticsOrder">
+		SELECT alo.*,abo.* from asset_logistics_order alo inner join asset_borrow_order abo on(abo.id=alo.order_id)
+		where 1=1
+		<if test="orderId != null and orderId !=''">
+            and alo.order_id = #{orderId}
+        </if>
+        <if test="userPhone != null and userPhone !=''">
+            and abo.user_phone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and abo.user_name = #{userName}
+        </if>
+        <if test="auditStatus != null and auditStatus !=''">
+            and alo.audit_status = #{auditStatus}
+        </if>
+        <if test="startDate != null and startDate != ''">
+			and alo.create_time >= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+	        <![CDATA[and alo.create_time <= CONCAT(#{endDate},' 23:59:59')]]>
+		</if>
+		  ORDER BY alo.create_time DESC
+	</select>
+	<select id="getList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT alo.*,abo.*,if(alo.audit_status is null,'',if(alo.audit_status=0,'不合格','检测合格')) as auditStatus
+		from asset_logistics_order alo inner join asset_borrow_order abo on(abo.id=alo.order_id)
+		where 1=1
+		<if test="orderId != null and orderId !=''">
+            and alo.order_id = #{orderId}
+        </if>
+        <if test="userPhone != null and userPhone !=''">
+            and abo.user_phone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and abo.user_name = #{userName}
+        </if>
+        <if test="auditStatus != null and auditStatus !=''">
+            and alo.audit_status = #{auditStatus}
+        </if>
+        <if test="startDate != null and startDate != ''">
+			and alo.create_time >= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+	        <![CDATA[and alo.create_time <= CONCAT(#{endDate},' 23:59:59')]]>
+		</if>
+		  ORDER BY alo.create_time DESC
+	</select>
+</mapper>

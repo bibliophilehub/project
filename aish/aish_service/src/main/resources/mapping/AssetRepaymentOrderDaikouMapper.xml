@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.inext.dao.AssetRepaymentOrderDaikouDao" >
+  <resultMap id="BaseResultMap" type="com.inext.entity.AssetRepaymentOrderDaikou" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="repayment_order_id" property="repaymentOrderId" jdbcType="INTEGER" />
+    <result column="req_amt" property="reqAmt" jdbcType="DECIMAL" />
+    <result column="pay_order_id" property="payOrderId" jdbcType="VARCHAR" />
+    <result column="pay_bussiness" property="payBussiness" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="charge_status" property="chargeStatus" jdbcType="VARCHAR" />
+    <result column="dk_order_id" property="dkOrderId" jdbcType="VARCHAR" />
+    <result column="res_amt" property="resAmt" jdbcType="DECIMAL" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, repayment_order_id, req_amt, pay_order_id, pay_bussiness, status, charge_status, 
+    dk_order_id, res_amt, create_time, update_time
+  </sql>
+  <!-- 代扣查询列表 -->
+  <select id="getQueryDKList" resultMap="BaseResultMap" parameterType="com.inext.dto.AssetRepaymentOrderDaikouDto">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+		asset_repayment_order_daikou
+	WHERE
+		`status` = 1
+	ORDER BY id
+  </select>
+  <!-- 代扣统计总和 -->
+  <select id="calculationDKQueryNum" resultType="java.lang.Integer" parameterType="com.inext.entity.AssetRepaymentOrderDaikou">
+    SELECT
+    	COUNT(1)
+    FROM
+		asset_repayment_order_daikou
+	WHERE
+		`status` = 1
+  </select>
+  
+  <select id="countDayRepaymentDKNum" resultType="java.lang.Integer" parameterType="com.inext.dto.AssetRepaymentOrderDaikouDto">
+    SELECT
+		COUNT(1)
+	FROM
+		asset_repayment_order_daikou
+	WHERE
+		repayment_order_id = #{repaymentOrderId,jdbcType=INTEGER}
+	AND create_time <![CDATA[ >= ]]> #{beginCreateTime,jdbcType=TIMESTAMP}
+	AND create_time <![CDATA[ <= ]]> #{endCreateTime,jdbcType=TIMESTAMP}
+		<if test="payBussiness != null" >
+        	and pay_bussiness = #{payBussiness,jdbcType=INTEGER}
+      	</if>
+  </select>
+  
+  <select id="countTotalRepaymentDKNum" resultType="java.lang.Integer" parameterType="com.inext.dto.AssetRepaymentOrderDaikouDto">
+    SELECT
+		COUNT(1)
+	FROM
+		asset_repayment_order_daikou
+	WHERE
+		repayment_order_id = #{repaymentOrderId,jdbcType=INTEGER}
+  </select>
+  
+</mapper>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" type="text/css" id="theme" th:href="@{/v2/css/theme-default.css}"/>
+    <link th:href="@{/huploadify/Huploadify.css}" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/v2/css/jqueryDatatable.css}"/>
+</head>
+<style type="">
+    body, h1, h2, h3, h4, h5, h6, hr, p, blockquote, dl, dt, dd, ul, ol, li, pre, form, fieldset, legend, button, input, textarea, th, td {
+        margin: 0;
+        padding: 0;
+    }
+
+    body, button, input, select, textarea {
+        font-family: "微软雅黑";, "MicroSoft YaHei", "Arial Narrow", "HELVETICA";
+        font-size: 14px;
+        padding: 0;
+        margin: 0;
+        color: #666;
+    }
+
+    table {
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+
+    ul, li {
+        margin: 0px;
+        padding: 0px;
+        list-style: none;
+    }
+
+    img {
+        border: none;
+        display: block;
+    }
+
+    h1, h2, h3, h4, h5, h6, p {
+        margin: 0;
+        padding: 0;
+    }
+
+    .clear {
+        clear: both;
+        margin: 0;
+        padding: 0;
+    }
+
+    a {
+        text-decoration: none;
+        color: #666;
+    }
+
+    html {
+        -webkit-text-size-adjust: none;
+    }
+
+    /* 2016-7-13 修改css */
+    input, textarea {
+        border: none;
+        outline: medium;
+    }
+
+    textarea {
+        overflow-y: auto;
+    }
+
+    .clear {
+        clear: both;
+        overflow: hidden;
+        height: 1px;
+        margin-top: -1px;
+        font-size: 0;
+    }
+
+    /* 用户资信报告 */
+    .credit-report {
+        width: 800px;
+        background-color: #fff;
+        margin: 0 auto;
+        padding: 38px 66px;
+    }
+
+    .credit-report i {
+        font-style: normal;
+    }
+
+    .credit-header {
+        padding-bottom: 6px;
+        border-bottom: 2px solid #434343;
+    }
+
+    .credit-title {
+        text-align: center;
+        padding: 26px 0 20px;
+    }
+
+    .credit-title h1 {
+        font-size: 18px;
+        color: #1d1d1d;
+        line-height: 18px;
+        margin-bottom: 4px;
+    }
+
+    .credit-title p {
+        font-size: 12px;
+        color: #5c5c5c;
+    }
+
+    .info-list {
+    }
+
+    .info-list dl {
+        overflow: hidden;
+    }
+
+    .info-list dl dd {
+        width: 33.33%;
+        float: left;
+        font-size: 12px;
+        color: #4e4e4e;
+        margin-bottom: 10px;
+    }
+
+    .table-box {
+        margin-top: 12px;
+    }
+
+    .table-title {
+        height: 26px;
+        background-color: #f8bd54;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+        line-height: 26px;
+        font-weight: bold;
+    }
+
+    .table-box p {
+        font-size: 14px;
+        color: #464646;
+        margin: 7px 0 2px;
+    }
+
+    .table-box table {
+        width: 100%;
+        text-align: left;
+        table-layout: fixed;
+    }
+
+    .table-box-ts table {
+        table-layout: auto;
+    }
+
+    .table-box table thead tr {
+        height: 21px;
+        border-top: 2px solid #666;
+        border-bottom: 1px solid #888;
+        line-height: 21px;
+        font-size: 12px;
+    }
+
+    .table-box table tbody tr td {
+        height: 19px;
+        border-bottom: 1px solid #888;
+        line-height: 19px;
+        font-size: 12px;
+        overflow: hidden;
+        word-wrap: break-word;
+        word-break: break-all;
+    }
+    #loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 15000;
+    }
+
+    #loading img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 80px;
+        height: 80px;
+        margin-top: -15px;
+        margin-left: -15px;
+    }
+</style>
+<style type="text/css">
+    .userTable td {
+        border-bottom: 1px solid #928989;
+        border-right: 1px solid #928989;
+        line-height: 31px;
+        overflow: hidden;
+        padding: 0 3px;
+        vertical-align: middle;
+        font-size:14px;
+    }
+    .userTable td a{
+        color:#5dacd0;
+    }
+    .userTable{
+        padding:0;
+        border:solid 1px #928989;
+        width:100%;
+        line-height:21px;
+    }
+    .tdGround{background-color:#ededed;}
+    .detailB th {
+        border: 1px solid darkgray;
+        color: #555;
+        background: #f5ecec none repeat scroll 0 0;
+        font-weight: bold;
+        width: 100px;
+        line-height: 21px;
+    }
+
+    /*   图片大小设置  */
+    .tdGround img{
+        width: 20px;
+        transition:all 0.3s
+    }
+
+    /*   图片鼠标移动放大  */
+    .tdGround img:hover{
+        width:550px;
+    }
+
+    .detailWidth{
+        width: 25%;
+        text-align: center
+    }
+    fieldset{
+        width: 80%;
+    }
+
+    /**　身份证照片*/
+    .idCardFrame{
+        position:relative;
+        display: inline-block;
+    }
+
+    .idCardFont{
+        position:absolute;
+        z-index: 2;
+        left:16%; top:30%;
+        font-size:20px;
+    }
+    .scrollFixedWH{
+        width: 14%;
+        height: 30px;
+        font-size:14px;
+    }
+
+    .scroll-table-head{padding-right:17px;background-color:#ededed;color:#000;}
+    .scroll-table-body{width:100%; height:100px;overflow-y:scroll;}
+
+    #confirmOrder{
+        width:100%;
+        text-align:center;
+    }
+    .buttonOrder{
+        width:100px;
+        height:38px;
+        line-height:38px;
+        text-align:center;
+        color:#fff;
+        margin-top:30px;
+        border:none;
+        background:#4876e6;
+    }
+</style>
+<body>
+<div class="col-md-12">
+    <div class="block">
+        <div class="page-title">
+            <h2><span class="fa fa-arrow-circle-o-left" onclick="javascript:history.back(-1);"></span></h2>
+        </div>
+    </div>
+    <div class="panel panel-default tabs">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="active">
+                <a href="#tab-first" role="tab" data-toggle="tab">基本信息</a>
+            </li>
+            <li>
+                <a href="#tab-second" role="tab" data-toggle="tab">手机通讯录</a>
+            </li>
+            <!--<li>
+                <a href="#tab-third" role="tab" data-toggle="tab">聚立信报告</a>
+            </li>
+            <li>
+                <a href="#tab-four" role="tab" data-toggle="tab">风控信息</a>
+            </li>-->
+            <li>
+                <a href="#tab-five" role="tab" data-toggle="tab">审核记录</a>
+            </li>
+            <li>
+                <a href="#tab-six" role="tab" data-toggle="tab">续期信息</a>
+            </li>
+        </ul>
+        <div class="panel-body tab-content tabBox">
+            <div class="tab-pane active" id="tab-first">
+                <fieldset>
+                    <legend>基本信息</legend>
+                    <table>
+                        <tr>
+                            <td class="td-left">用户ID</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.id}"></span>
+                            </td>
+                            <td class="td-left">姓名</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.userName}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="td-left">注册手机号</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.userPhone}"></span>
+                            </td>
+                            <td class="td-left">身份证号码</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.userCardNo}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="td-left">学历</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.userEducation}"></span>
+                            </td>
+                            <td class="td-left">婚姻状态</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.userMarriage}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="td-left">现居地址</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.userProvince}"></span>
+                                <span th:text="${resultMap.userCity}"></span>
+                                <span th:text="${resultMap.userArea}"></span>
+                                <span th:text="${resultMap.userAddress}"></span>
+                            </td>
+                            <td class="td-left">居住时长</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.lengthOfStay}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="td-left">银行卡</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.cardCode}"></span>
+                            </td>
+                            <td class="td-left">银行卡所属银行</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.cardTName}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="td-left">是否黑名单</td>
+                            <td class="td-right">
+                                <span th:text="${resultMap.isBlack}"></span>
+                            </td>
+                            <td class="td-left"></td>
+                            <td class="td-right">
+                            </td>
+                        </tr>
+                    </table>
+                </fieldset>
+                <fieldset>
+                    <legend>认证信息</legend>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>认证项目</th>
+                            <th>认证状态</th>
+                            <th>认证时间</th>
+                        </tr>
+                        </thead>
+                        <tr>
+                            <td>实名认证</td>
+                            <td><span th:text="${resultMap.isVerified}"></span></td>
+                            <td><span th:text="${resultMap.verifiedTime}"></span></td>
+                        </tr>
+                        <tr>
+                            <td>手机通讯录</td>
+                            <td><span th:text="${resultMap.isPhone}"></span></td>
+                            <td><span th:text="${resultMap.phoneTime}"></span></td>
+                        </tr>
+                        <tr>
+                            <td>运营商认证</td>
+                            <td><span th:text="${resultMap.isOperator}"></span></td>
+                            <td><span th:text="${resultMap.operatorTime}"></span></td>
+                        </tr>
+                        <tr>
+                            <td>绑定银行卡</td>
+                            <td><span th:text="${resultMap.isCard}"></span></td>
+                            <td><span th:text="${resultMap.cardTime}"></span></td>
+                        </tr>
+                    </table>
+                </fieldset>
+                <fieldset>
+                    <legend>身份证信息</legend>
+                    <table>
+                        <tr>
+                            <td><img style="width:230px;height:160px;" th:src="${resultMap.humanFaceImg}"/></td>
+                            <td><img style="width:230px;height:160px;" th:src="${resultMap.cardPositiveImg}"/></td>
+                            <td><img style="width:230px;height:160px;" th:src="${resultMap.cardAntiImg}"/></td>
+                        </tr>
+                    </table>
+                </fieldset>
+            </div>
+            <div class="tab-pane" id="tab-second">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>备注名</th>
+                        <th>手机号</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="result: ${listUserPhone}">
+                        <td th:text="${result.id}"></td>
+                        <td th:text="${result.name}"></td>
+                        <td th:text="${result.phone}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane" id="tab-five">
+                <fieldset>
+                    <legend>审核记录</legend>
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>订单号</th>
+                            <th>审核时间</th>
+                            <th>审核类型</th>
+                            <th>审核人</th>
+                            <th>审核结果</th>
+                            <th>审核备注</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="result: ${auditHistoryList}">
+                            <td th:text="${result.orderId}"></td>
+                            <td th:text="${#dates.format(result.createTime, 'yyyy-MM-dd')}"></td>
+                            <td th:text="${result.operator} == null ? '机器审核':'人工审核'"></td>
+                            <td th:text="${result.operator}"></td>
+                            <td th:text="${result.orderStatus} == 5 ? '审核拒绝':'审核通过'"></td>
+                            <td th:text="${result.operatorRemark}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </fieldset>
+            </div>
+            <!--续期-->
+            <div  class="tab-pane" id="tab-six">
+                <fieldset style="width: 100%;">
+                    <legend>续期信息</legend>
+                    <table class="table" id="bigDataList">
+                        <thead>
+                        <tr>
+                            <th>订单号</th>
+                            <th>姓名</th>
+                            <th>手机号</th>
+                            <th>借款金额</th>
+                            <th>借款期限</th>
+                            <th>违约金</th>
+                            <th>放款时间</th>
+                            <th>资方</th>
+                            <th>续期时间</th>
+                            <th>续期天数</th>
+                            <th>续期后应还款时间</th>
+                            <th>渠道</th>
+                            <th>扣款时间</th>
+                            <th>扣款单号</th>
+                            <th>扣款渠道</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="result: ${renewalOrderList}">
+                            <td th:text="${result.orderId}"></td>
+                            <td th:text="${result.userName}"></td>
+                            <td th:text="${result.userPhone}"></td>
+                            <td th:text="${result.moneyAmount}"></td>
+                            <td th:text="${result.moneyDay}"></td>
+                            <td th:text="${result.penaltyAmount}"></td>
+                            <td th:text="${result.creditRepaymentTime==null?'':#dates.format(result.creditRepaymentTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${paymentChannels[result.paymentChannel]}"></td>
+                            <td th:text="${result.renewalTime==null?'':#dates.format(result.renewalTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${result.renewalDay}"></td>
+                            <td th:text="${result.repaymentTime==null?'':#dates.format(result.repaymentTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${result.channelName}"></td>
+                            <td th:text="${result.paymentTime==null?'':#dates.format(result.paymentTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${result.orderNo}"></td>
+                            <td th:text="${result.repaymentChannel}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <!--form id="confirmOrder" th:if="${orderId ne null}">
+                        <input type="hidden" th:value="${orderId}" name="orderId"/>
+                        <input type="hidden" th:value="${resultMap.userName}" name="username"/>
+                        <input type="hidden" th:value="${resultMap.userPhone}" name="userphone"/>
+                        <button id="buttonOrder" type="button" class="buttonOrder" >续期</button>
+                    </form-->
+                </fieldset>
+                <div id="loading" style="display: none">
+                    <img src="/v2/img/loading.gif" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript" th:src='@{/v2/js/jquery.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/jquery-ui.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/bootstrap.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/bootstrapValidator.min.js}'></script>
+<script type='text/javascript' th:src='@{/v2/js/icheck.min.js}'></script>
+<script type="text/javascript" th:src="@{/v2/js/jquery.mCustomScrollbar.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/bootstrap-select.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/jquery.dataTables.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/settings.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/plugins.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/actions.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/bootstrap-treeview.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/common.js}"></script>
+<script type="text/javascript" th:src="@{/huploadify/jquery.Huploadify.js}"></script>
+<script type="text/javascript" th:src="@{/js/base.js}"></script>
+<script type="text/javascript" th:src='@{/v2/js/tipBox.js}'></script>
+
+<div class="tab-pane" id="tab-four" th:if=" ${fkList} !=null">
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    $(function () {
+        $("#buttonOrder").click(function () {
+            $.MsgBox.Confirm("温馨提示", "是否确认续期？","", function () {
+                $('#loading').show();
+                var _data = $("#confirmOrder").serializeArray();
+                $.ajax({
+                    url: "/assetRepaymentOrder/renewaloperate",
+                    type: "POST",
+                    data: _data,
+                    success: function (result) {
+                        $('#loading').hide();
+                        if (result.success) {
+                            $('#loading').hide();
+                            window.location = "/assetRepaymentOrder/pageList?type=7";
+                        } else {
+                            $.MsgBox.Alert("温馨提示", result.message, function () {
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    })
+    /*]]>*/
+</script>
+</div>
+</html>

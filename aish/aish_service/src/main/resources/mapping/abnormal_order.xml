@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IAbnormalOrderDao">
+
+
+    <select id="getAbnormalOrder" resultType="com.inext.entity.AbnormalOrder">
+		     	SELECT
+            abnormal_order.*,
+			back_user.nick_name as nickName
+        FROM
+            abnormal_order
+			left JOIN back_user on abnormal_order.operator=back_user.id
+        WHERE
+		     repayment_order_no = #{0}
+    </select>
+
+    <select id="getOrderByRefundOrderNo" resultType="java.lang.Long">
+		     SELECT COUNT(refund_order_no) FROM abnormal_order where refund_order_no =#{refundOrderNo}
+    </select>
+
+    <select id="getAbnormalOrderList" parameterType="java.util.Map" resultType="com.inext.entity.AbnormalOrder">
+        SELECT
+        ao.order_id,
+        ao.user_name,
+        ao.repayment_money,
+        ao.repayment_order_no,
+        borrow_user.userPhone,
+        ao.refund_order_no,
+        ao.refund_card_no,
+        ao.amount,
+        ww.sumAmount,
+        ao.issue,
+        back_user.nick_name,
+        ao.remark,
+        ao.refund_channel,
+        if(ao.refund_bank='huiChao','汇潮',bank_all_info.bank_name) refundBank,
+        ao.creat_time
+        FROM
+        abnormal_order ao
+        LEFT JOIN bank_all_info ON ao.refund_bank = bank_all_info.bank_code
+        LEFT JOIN back_user ON back_user.id = ao.operator
+        LEFT join borrow_user on borrow_user.id = ao.user_id
+        LEFT join (SELECT abnormal_order.order_id,sum(abnormal_order.amount) sumAmount from abnormal_order GROUP BY abnormal_order.order_id) ww on ww.order_id=ao.order_id
+        where 1=1
+        <if test="searchOrderId != null and searchOrderId != -1">
+            and ao.order_id = #{searchOrderId}
+        </if>
+        <if test="userPhone != null and userPhone != -1">
+            and borrow_user.userPhone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and ao.user_name = #{userName}
+        </if>
+        <if test="refundOrderNo != null and refundOrderNo !=''">
+            and ao.refund_order_no = #{refundOrderNo}
+        </if>
+
+        <if test="startDate != null and startDate != ''">
+            and ao.creat_time >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            <![CDATA[and ao.creat_time <= CONCAT(#{endDate},' 23:59:59')]]>
+        </if>
+        ORDER BY
+        ao.order_id DESC
+    </select>
+
+
+    <select id="getList" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        ao.order_id,
+        ao.user_name,
+        ao.repayment_money,
+        ao.repayment_order_no,
+        REPLACE(borrow_user.userPhone,SUBSTR(borrow_user.userPhone,4,4), '****') as userPhone,
+        ao.refund_order_no,
+        ao.refund_card_no,
+        ao.amount,
+        ww.sumAmount,
+        if(ao.issue=1,"重复退款",if(ao.issue=2,"退款后续期",if(ao.issue=3,"其他",""))) issue,
+        back_user.nick_name,
+        ao.remark,
+        if(ao.refund_channel=1,'汇潮',if(ao.refund_channel=2,'银行','')) refund_channel,
+        if(ao.refund_bank='huiChao','汇潮',bank_all_info.bank_name) refundBank,
+        ao.creat_time
+        FROM
+        abnormal_order ao
+        LEFT JOIN bank_all_info ON ao.refund_bank = bank_all_info.bank_code
+        LEFT JOIN back_user ON back_user.id = ao.operator
+        LEFT join borrow_user on borrow_user.id = ao.user_id
+        LEFT join (SELECT abnormal_order.order_id,sum(abnormal_order.amount) sumAmount from abnormal_order GROUP BY abnormal_order.order_id) ww on ww.order_id=ao.order_id
+        where 1=1
+        <if test="searchOrderId != null and searchOrderId != -1">
+            and ao.order_id = #{searchOrderId}
+        </if>
+        <if test="userPhone != null and userPhone != -1">
+            and borrow_user.userPhone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and ao.user_name = #{userName}
+        </if>
+        <if test="refundOrderNo != null and refundOrderNo !=''">
+            and ao.refund_order_no = #{refundOrderNo}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            and ao.creat_time >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            <![CDATA[and ao.creat_time <= CONCAT(#{endDate},' 23:59:59')]]>
+        </if>
+        ORDER BY
+        ao.order_id DESC
+    </select>
+
+
+    <select id="getHcDfInfoList" parameterType="java.util.Map" resultType="com.inext.entity.HcDfInfo">
+        SELECT
+            id,
+            operate_user_id,
+            asset_order_id,
+            `type`,
+            bank_card_no,
+            user_name,
+            order_no,
+            req_amt,
+            add_time,
+            update_time,
+          CASE `status`
+            WHEN 0 THEN '初始'
+            WHEN 1 THEN '失败'
+            WHEN 2 THEN '成功'
+            END AS `status`
+        FROM
+          hc_df_info
+        WHERE
+          1=1
+        <if test="status!=null and status!=''">
+          AND `status` = ${status}
+        </if>
+        <if test="orderNo!=null and orderNo!=''">
+            AND `order_no` = ${orderNo}
+        </if>
+        <if test="bankCardNo!=null and bankCardNo!=''">
+            AND `bank_card_no` = ${bankCardNo}
+        </if>
+        <if test="userName!=null and userName!=''">
+            AND `user_name` = ${userName}
+        </if>
+    </select>
+</mapper>

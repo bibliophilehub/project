@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IChannelBalanceStatisticsDao" >
+	<delete id="deleteOldData" parameterType="map" >
+	     delete from channel_balance_statistics 
+	     where DATE_FORMAT(statistics_date, '%Y-%m-%d') =DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d')
+	</delete>
+    
+    <insert id="addBalanceStatistics" useGeneratedKeys="true" parameterType="java.util.List">  
+	    <selectKey resultType="long" keyProperty="id" order="AFTER">  
+	        SELECT  
+	        LAST_INSERT_ID()  
+	    </selectKey>  
+	    insert into channel_balance_statistics (
+	        channel_id,
+	        channel_code,
+	        channel_name,
+	    	pv_count,
+			uv_count,
+			reUvRate,
+			register_count,
+			apply_count,
+			new_user_count,
+			old_user_count,
+			loan_count,
+			new_loan_count,
+			old_loan_count,
+			loan_money_mount,
+	    	statistics_date
+	    ) values  
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	        (
+	        #{item.channelId},
+	        #{item.channelCode},
+	        #{item.channelName},
+	        #{item.pvCount},
+	        #{item.uvCount},
+	        #{item.reUvRate},
+	        #{item.registerCount},
+	        #{item.applyCount},
+	        #{item.newUserCount},
+	        #{item.oldUserCount},
+	        #{item.loanCount},
+	        #{item.newLoanCount},
+	        #{item.oldLoanCount},
+	        #{item.loanMoneyMount},
+	        #{item.statisticsDate}
+	        )
+	    </foreach>  
+	</insert>
+	
+	<select id="getBalanceStatisticsList" parameterType="map" resultType="com.inext.entity.ChannelBalanceStatistics">
+       SELECT
+			*
+		FROM
+			channel_balance_statistics 
+		<where>
+	        <if test="channelName != null and channelName !=''">
+	            and  channel_name  LIKE   CONCAT('%', #{channelName}, '%')
+	        </if>
+	        <if test="channelName != null and channelName !=''">
+	            and  channel_name  LIKE   CONCAT('%', #{channelName}, '%')
+	        </if>
+	        <if test="startDate != null and startDate != ''">
+				and statistics_date >= #{startDate}
+			</if>
+			<if test="endDate != null and endDate != ''">
+		        <![CDATA[and statistics_date <= #{endDate}]]>
+			</if>
+		</where>
+		<if test="sortColumn != null and sortColumn != ''">
+			Order by ${sortColumn}
+		</if>
+		<if test="sortColumn == null or sortColumn == ''">
+			ORDER BY statistics_date DESC
+		</if>
+    </select>
+	<select id="findBalanceStatistics" parameterType="map" resultType="map">
+	SELECT
+			SUM(pv_count) as allPvCount,
+			SUM(uv_count) as allUvCount,
+			SUM(register_count) as allRegisterCount,
+			SUM(apply_count) as allApplyCount,
+			SUM(new_user_count) as allNewUserCount,
+			SUM(old_user_count) as allOldUserCount,
+			SUM(loan_count) as allLoanCount,
+			SUM(new_loan_count) as allNewLoanCount,
+			SUM(old_loan_count) as allOldLoanCount,
+			SUM(loan_money_mount) as allLoanMoneyMount
+		FROM
+			channel_balance_statistics
+		<where>
+	        <if test="channelName != null and channelName !=''">
+	            and  channel_name  LIKE   CONCAT('%', #{channelName}, '%')
+	        </if>
+	        <if test="channelName != null and channelName !=''">
+	            and  channel_name  LIKE   CONCAT('%', #{channelName}, '%')
+	        </if>
+	        <if test="startDate != null and startDate != ''">
+				and statistics_date >= #{startDate}
+			</if>
+			<if test="endDate != null and endDate != ''">
+		        <![CDATA[and statistics_date <= #{endDate}]]>
+			</if>
+		</where>
+    </select>
+</mapper>

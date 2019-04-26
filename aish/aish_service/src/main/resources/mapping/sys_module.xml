@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.ISysModuleDao">
+	<!-- 根据moduleId查询子模块id -->
+    <select id="getModuleChildIds" parameterType="String" resultType="String">
+        select getModuleChildList(#{moduleId});
+    </select>
+    <!-- 根据parentId查询系统模块 -->
+    <select id="getByParentId" parameterType="Integer" resultType="com.inext.entity.SysModule">
+        SELECT
+        id,
+        parent_id parentId,
+        name,
+        url,
+        icon_class iconClass,
+        element_class elementClass,
+        menus,
+        status,
+        rank,
+        remark,
+        create_time createTime,
+        update_time updateTime,
+        enabled
+        FROM
+        sys_module sm
+        where sm.parent_id = #{parentId}
+        order by sm.rank
+    </select>
+    <!-- 根据主键查询系统模块 -->
+    <select id="findSysModuleById" parameterType="java.lang.String" resultType="com.inext.entity.SysModule">
+        SELECT * FROM sys_module sm where sm.id = #{id}
+    </select>
+    <!--  前端树形结构展示模块 -->
+    <select id="getModuleTreeList" resultType="Map">
+        SELECT
+        id,
+        parent_id pid,
+        name text
+        FROM
+        sys_module sm
+        where sm.enabled = 1
+        order by sm.rank
+    </select>
+    <!-- 保存系统模块 使用生成的主键 -->
+    <insert id="saveModule" parameterType="com.inext.entity.SysModule" keyProperty="id" useGeneratedKeys="true">
+        insert into sys_module
+        (parent_id,name,url,icon_class,element_class,menus,rank,remark,enabled,create_time,update_time,create_account,update_account)
+        values
+        (#{parentId},#{name},#{url},#{iconClass},#{elementClass},#{menus},#{rank},#{remark},#{enabled},#{createTime},#{updateTime},#{createAccount},#{updateAccount})
+    </insert>
+ 	<update id="delModule" parameterType="map">
+        update sys_module set enabled=0 where id in(${moduleIds})
+	</update>
+    <select id="getModuleByParams" resultType="com.inext.entity.SysModule">
+        SELECT
+        sm.id,
+        sm.parent_id parentId,
+        sm.name,
+        sm.url,
+        sm.icon_class iconClass,
+        sm.element_class elementClass,
+        sm.menus
+        FROM
+        sys_module sm
+        where 1=1
+        and sm.status = #{status}
+        and sm.enabled = #{enabled}
+        and sm.parent_id = #{parentId}
+        <if test="roleId != null and roleId !=''">
+        and sm.id IN(SELECT module_id from sys_role_module where role_id in(${roleId}))
+        </if>
+        order by sm.rank
+    </select>
+</mapper>

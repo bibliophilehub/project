@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IBackUserDao">
+    <resultMap id="BaseResultMap" type="com.inext.entity.BackUser">
+        <id column="id" property="id"/>
+        <result column="account" property="account"/>
+        <result column="password" property="password"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        
+        <result column="create_account" property="createAccount"/>
+        <result column="update_account" property="updateAccount"/>
+        <result column="user_type" property="userType"/>
+        <result column="diversion_channel" property="diversionChannel"/>
+        <result column="publishing_channel" property="publishingChannel"/>
+        <result column="nick_name" property="nickName"/>
+        <result column="remarks" property="remarks"/>
+        <result column="company" property="company"/>
+        <result column="department" property="department"/>
+        <result column="post" property="post"/>
+        <result column="full_name" property="fullName"/>
+        <result column="telephone" property="telephone"/>
+        <result column="email" property="email"/>
+        <result column="portrait_img" property="portraitImg"/>
+        <result column="user_login_time" property="userLoginTime"/>
+    </resultMap>
+    <sql id="findAllSql">
+        from back_user
+        where 1=1
+        <if test="id != null and id !=''">
+            and id = #{id}
+        </if>
+        <if test="userAccount != null and userAccount !=''">
+            and account = #{userAccount}
+        </if>
+    </sql>
+    <select id="findAllCount" parameterType="HashMap" resultType="Integer">
+        select count(1)
+        <include refid="findAllSql"/>
+    </select>
+
+    <select id="findAll" resultMap="BaseResultMap" parameterType="HashMap">
+        select * 
+        <include refid="findAllSql"/>
+        order by id asc
+    </select>
+
+    <select id="findByAccount" resultMap="BaseResultMap" parameterType="HashMap">
+        select * 
+        <include refid="findAllSql"/>
+        order by id asc
+    </select>
+	<select id="findByAccountNotId" resultMap="BaseResultMap" parameterType="HashMap">
+        select * 
+        from back_user
+        where 1=1
+        <if test="id != null and id !=''">
+            and id != #{id}
+        </if>
+        <if test="userAccount != null and userAccount !=''">
+            and account = #{userAccount}
+        </if>
+    </select>
+    <select id="findByNickName" resultMap="BaseResultMap" parameterType="HashMap">
+        select * 
+        from back_user
+        where 1=1
+        <if test="nickName != null and nickName !=''">
+            and lower(nick_name) = lower(#{nickName})
+        </if>
+    </select>
+	<select id="findByNickNameNotId" resultMap="BaseResultMap" parameterType="HashMap">
+        select * 
+        from back_user
+        where 1=1
+        <if test="id != null and id !=''">
+            and id != #{id}
+        </if>
+        <if test="nickName != null and nickName !=''">
+             and lower(nick_name) = lower(#{nickName})
+        </if>
+    </select>
+    <select id="getPageList" parameterType="Map" resultMap="BaseResultMap">
+        select distinct ur.userRoleNames,bu.* from back_user bu left join 
+		(select sur.user_id,group_concat(sr.name) as userRoleNames from sys_user_role sur,sys_role sr where sur.role_id=sr.id  GROUP BY sur.user_id)ur
+        on(bu.id=ur.user_id) inner join sys_user_role ss on(bu.id=ss.user_id)
+        where 1=1
+        <if test="userType !=null and userType !='' and userType != 'null'">
+            and bu.user_type=#{userType}
+        </if>
+        <if test="account !=null and account !='' and account != 'null'">
+            and bu.account like CONCAT('%',#{account},'%')
+        </if>
+        <if test="nickName !=null and nickName !='' and nickName != 'null'">
+            and bu.nick_name like CONCAT('%',#{nickName},'%') 
+        </if>
+         <if test="fullName !=null and fullName !='' and fullName != 'null'">
+            and bu.full_name like CONCAT('%',#{fullName},'%') 
+        </if>
+        <if test="status !=null and status !='' and status != 'null'">
+            and bu.status=#{status}
+        </if>
+        <if test="userRoles !=null and userRoles !='' and userRoles != 'null'">
+            and ss.role_id in (${userRoles})
+        </if>
+        <if test="sortColumn != null and sortColumn != ''">
+            Order BY ${sortColumn}
+        </if>
+        <if test="sortColumn == null or sortColumn == ''">
+            ORDER BY bu.id
+        </if>
+    </select>
+    <select id="getListByRoleId" parameterType="Integer" resultMap="BaseResultMap">
+        select bu.* from back_user bu,sys_user_role sur
+        where bu.id=sur.user_id
+         and sur.role_id=#{roleId}
+        ORDER BY bu.user_login_time DESC
+    </select>
+</mapper>

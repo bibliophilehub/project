@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IIdentificationUserDao">
+    <select id="getOrderList" resultType="map" parameterType="java.lang.String">
+		SELECT
+			DATE_FORMAT(u.createTime, '%Y-%m-%d') as createTime,
+			COUNT(u.id) AS registerCount,
+			COUNT(	IF (u.isVerified = 1, TRUE, NULL)) AS nameCount,
+			COUNT(IF(u.isPhone = 1, TRUE, NULL)) AS contactsCount,
+			COUNT(	IF (u.isOperator = 1, TRUE, NULL)	) AS operatorCount,
+			COUNT(IF(u.isCard = 1, TRUE, NULL)) AS cardCount,
+			COUNT(IF(u.isZhima = 1, TRUE, NULL)) AS zhimaCount,
+			COUNT(	IF (		u.transactionPassword IS NOT NULL,	TRUE,		NULL	)	) AS passwordCount
+		FROM
+			borrow_user u
+		where  1=1
+		<if test="registerTime != null and registerTime !=''">
+           and DATE_FORMAT(u.createTime, '%Y-%m-%d')=#{registerTime}
+        </if>	
+		<if test="channelId != null and channelId != -1">
+           and u.channelId=#{channelId}
+        </if>	
+        GROUP BY
+           DATE_FORMAT(u.createTime, '%Y-%m-%d') 
+        ORDER BY createTime desc 
+    </select>
+</mapper>

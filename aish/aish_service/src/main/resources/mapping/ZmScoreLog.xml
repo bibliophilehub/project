@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IZmScoreLogDao">
+   <select id="getZmScoreLog" parameterType="HashMap" resultType="com.inext.entity.ZmScoreLog">
+   		select 
+   		id,
+		userId,
+		zmScore,
+		zmContent,
+		createTime
+   		from zm_score_log
+   		where 1=1
+	   <if test="userId != null">
+		   and userId = #{userId}
+	   </if>
+	   <if test="id != null">
+		   and id = #{id}
+	   </if>
+	   <if test="createTime != null">
+		   createTime = #{createTime},
+	   </if>
+   </select>
+
+	<select id="getZmScoreLogCount" parameterType="HashMap" resultType="java.lang.Integer">
+		select
+		count(id)
+		from zm_score_log
+		where 1=1
+		<if test="userId != null">
+			and userId = #{userId}
+		</if>
+		<if test="id != null">
+			and id = #{id}
+		</if>
+		<if test="createTime != null">
+			createTime = #{createTime},
+		</if>
+	</select>
+
+   <insert id="saveZmScoreLog" parameterType="com.inext.entity.ZmScoreLog" keyProperty="id" useGeneratedKeys="true">
+        insert into zm_score_log(userId,zmScore,zmContent,createTime)
+        values (#{userId},#{zmScore},#{zmContent},#{createTime})
+    </insert>
+    
+    <update id="updateZmScoreLog" parameterType="com.inext.entity.ZmScoreLog">
+    	update borrow_user set 
+    	<if test="zmScore != null and zmScore !=''">
+			zmScore = #{zmScore},
+    	</if>
+    	<if test="transactionPassword != null and transactionPassword !=''">
+    		transactionPassword = #{transactionPassword},
+    	</if>
+    	<if test="zmContent != null and zmContent !=''">
+			zmContent = #{zmContent},
+    	</if>
+    	<if test="createTime != null and createTime !=''">
+			createTime = #{createTime},
+    	</if>
+    	where 
+    	id = #{id}
+    </update>
+</mapper>

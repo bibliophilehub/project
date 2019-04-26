@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IUserMobileAuthLogDao">
+	<resultMap id="BaseResultMap" type="com.inext.entity.UserMobileAuthLog">
+        <id column="id" property="id"/>
+        <result column="userId" property="userId" />
+        <result column="userName" property="userName"/>
+        <result column="mobile" property="mobile" />
+        <result column="cardNo" property="cardNo" />
+        <result column="backUrl" property="backUrl" />
+        <result column="themeColor" property="themeColor" />
+        <result column="auth_status" property="auth_status" />
+        <result column="create_time" property="create_time"/>
+        <result column="update_time" property="update_time" />
+        <result column="return_json" property="return_json" />
+        <result column="notify_json" property="notify_json" />                
+    </resultMap>
+
+   <select id="getMobileAuthLog" parameterType="HashMap"  resultMap="BaseResultMap">
+   		SELECT * FROM user_mobile_auth_log
+   		WHERE 1=1
+	   <if test="userId != null">
+		   and userId = #{userId}
+	   </if>
+	   <if test="auth_status != null">
+		   and auth_status = #{auth_status}
+	   </if>
+	   ORDER BY ID DESC
+   </select>
+
+	<!--查询未获取认证结果的用户-->
+	<select id="getUnAuthUserList" parameterType="HashMap"  resultMap="BaseResultMap">
+		SELECT
+		 l.id,l.userId,l.mobile,l.auth_status
+		FROM
+		user_mobile_auth_log l
+		INNER JOIN borrow_user u ON u.id = l.userId
+		WHERE u.isOperator = 0 AND l.auth_status = 1
+		GROUP BY l.userId limit 100
+	</select>
+   <insert id="saveMobileAuth" parameterType="com.inext.entity.UserMobileAuthLog" keyProperty="id" useGeneratedKeys="true">
+        insert into user_mobile_auth_log(
+		   userId,
+		  userName,
+		  mobile,
+		  cardNo,
+		  backUrl,
+		  themeColor,
+		  auth_status,
+		  return_json,
+		  notify_json,
+		  create_time,
+		  update_time)
+        values (#{userId},#{userName},#{mobile},#{cardNo},#{backUrl},#{themeColor},
+  				#{auth_status},#{return_json},#{notify_json},#{create_time},#{update_time})
+    </insert>
+    
+    <update id="updateMobileAuth" parameterType="com.inext.entity.UserMobileAuthLog">
+    	update user_mobile_auth_log set 
+    	update_time = now()
+    	<if test="userName != null and userName !=''">
+			,userName = #{userName}
+    	</if>
+    	<if test="mobile != null and mobile !=''">
+			,mobile = #{mobile}
+    	</if>
+    	<if test="cardNo != null and cardNo !=''">
+			,cardNo = #{cardNo}
+    	</if>
+    	<if test="backUrl != null and backUrl !=''">
+			,backUrl = #{backUrl}
+    	</if>
+    	<if test="themeColor != null and themeColor !=''">
+			,themeColor = #{themeColor}
+    	</if>
+    	<if test="auth_status != null and auth_status !=''">
+			,auth_status = #{auth_status}
+    	</if>
+    	<if test="return_json != null and return_json !=''">
+			,return_json = #{return_json}
+    	</if>
+    	<if test="notify_json != null and notify_json !=''">
+			,notify_json = #{notify_json}
+    	</if>    		    	
+    	where 
+    	userId = #{userId}
+    </update>
+</mapper>

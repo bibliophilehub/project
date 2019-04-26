@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IUserAuthRecordDao">
+	<resultMap id="BaseResultMap" type="com.inext.entity.UserAuthRecord">
+        <id column="id" property="id"/>
+        <result column="user_phone" property="user_phone" />
+        <result column="user_name" property="user_name"/>
+        <result column="user_id_no" property="user_id_no" />
+        <result column="user_card_no" property="user_card_no" />
+        <result column="user_id" property="user_id" />
+        <result column="terminal_no" property="terminal_no" />
+        <result column="trade_no" property="trade_no" />
+        <result column="c_name" property="c_name"/>
+        <result column="create_time" property="create_time" />
+        <result column="return_params" property="return_params" />
+        <result column="update_time" property="update_time" />
+        <result column="auth_code" property="auth_code" /> 
+        <result column="is_fee" property="is_fee" />
+        <result column="user_card_id" property="user_card_id" />                   
+    </resultMap>
+
+
+   <select id="getRecordByUserId" parameterType="HashMap"  resultMap="BaseResultMap">
+   		SELECT * FROM user_auth_record
+   		WHERE 1=1
+	   <if test="userId != null">
+		   and user_id = #{userId}
+	   </if>
+	   <if test="orgCode != null">
+		   and auth_code = #{orgCode}
+	   </if>
+	   ORDER BY ID DESC
+   </select>
+   <insert id="saveRecord" parameterType="com.inext.entity.UserAuthRecord" keyProperty="id" useGeneratedKeys="true">
+        insert into user_auth_record(user_phone,user_name,user_id_no,user_card_no,user_id,terminal_no,
+  				trade_no,c_name,create_time,return_params,update_time,auth_code,is_fee,user_card_id)
+        values (#{user_phone},#{user_name},#{user_id_no},#{user_card_no},#{user_id},#{terminal_no},
+  				#{trade_no},#{c_name},#{create_time},#{return_params},#{update_time},#{auth_code}, #{is_fee},#{user_card_id})
+    </insert>
+    
+    <update id="updateRecord" parameterType="com.inext.entity.UserAuthRecord">
+    	update user_auth_record set 
+    	update_time = now()
+    	<if test="user_phone != null and user_phone !=''">
+			, user_phone = #{user_phone}
+    	</if>
+    	<if test="user_name != null and user_name !=''">
+			,user_name = #{user_name}
+    	</if>
+    	<if test="user_id_no != null and user_id_no !=''">
+			,user_id_no = #{user_id_no}
+    	</if>
+    	<if test="user_card_no != null and user_card_no !=''">
+			,user_card_no = #{user_card_no}
+    	</if>
+    	<if test="user_id != null and user_id !=''">
+			,user_id = #{user_id}
+    	</if>
+    	<if test="terminal_no != null and terminal_no !=''">
+			,terminal_no = #{terminal_no}
+    	</if>
+    	<if test="trade_no != null and trade_no !=''">
+			,trade_no = #{trade_no}
+    	</if>
+    	<if test="c_name != null and c_name !=''">
+			,c_name = #{c_name}
+    	</if>
+    	<if test="create_time != null and create_time !=''">
+			,create_time = #{create_time}
+    	</if>
+    	<if test="return_params != null and return_params !=''">
+			,return_params = #{return_params}
+    	</if>
+    	<if test="auth_code != null and auth_code !=''">
+			,auth_code = #{auth_code}
+    	</if>  
+    	<if test="is_fee != null and is_fee !=''">
+			,is_fee = #{is_fee}
+    	</if>    	
+    	<if test="user_card_id != null and user_card_id !=''">
+			,user_card_id = #{user_card_id}
+    	</if>   
+    	   	    		    	
+    	where 
+    	id = #{id}
+    </update>
+</mapper>

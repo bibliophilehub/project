@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>运营商认证</title>
+<meta http-equiv="Expires" content="-1"/>               
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Cache-Control" content="no-cache"/> 
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+ <link rel="stylesheet" type="text/css" th:href="@{/css/zm/jquery.mobile-1.4.2.min.css}" />
+ <link rel="stylesheet" type="text/css" th:href="@{/css/zm/basic.css}" />
+ <link rel="stylesheet" type="text/css" th:href="@{/css/zm/common.css}" />
+</head>
+<body >
+        <div class="wrapper">
+          <div class="sq-wrap"> 
+              <img th:src="@{/images/success.png}" height="539" width="393" alt="" class="logo"/>
+	          <div  class="btn h-btn"><h3 th:text="${errmsg}">处理成功，请等待运营商认证</h3></div>
+           </div>
+        </div>
+</body>
+</html>

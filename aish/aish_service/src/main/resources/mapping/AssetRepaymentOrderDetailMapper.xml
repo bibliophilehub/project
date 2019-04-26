@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.inext.dao.IAssetRepaymentOrderDetailDao" >
+  <resultMap id="BaseResultMap" type="com.inext.entity.AssetRepaymentOrderDetail" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="borrow_user_id" property="borrowUserId" jdbcType="INTEGER" />
+    <result column="borrow_order_id" property="borrowOrderId" jdbcType="INTEGER" />
+    <result column="repayment_order_id" property="repaymentOrderId" jdbcType="INTEGER" />
+    <result column="out_order_no" property="outOrderNo" jdbcType="VARCHAR" />
+    <result column="money_amount" property="moneyAmount" jdbcType="DECIMAL" />
+    <result column="penalty_amount" property="penaltyAmount" jdbcType="DECIMAL" />
+    <result column="plan_late_fee" property="planLateFee" jdbcType="DECIMAL" />
+    <result column="cedit_amount" property="ceditAmount" jdbcType="DECIMAL" />
+    <result column="sum_amount" property="sumAmount" jdbcType="DECIMAL" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="repayment_way" property="repaymentWay" jdbcType="INTEGER" />
+    <result column="curr_rep_status" property="currRepStatus" jdbcType="INTEGER" />
+    <result column="pay_time" property="payTime" jdbcType="DATE" />
+    <result column="create_by" property="createBy" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <sql id="Base_Column_List" >
+    id, borrow_user_id, borrow_order_id, repayment_order_id,out_order_no, money_amount, penalty_amount, 
+    plan_late_fee, cedit_amount,sum_amount, comment, repayment_way, curr_rep_status, pay_time, create_by, 
+    create_time
+  </sql>
+  
+  <!-- 根据还款订单查询历史所有的各项还款总额 -->
+  <select id="selectDetailsByRepaymentOrderId" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+  	 select 
+		SUM(money_amount) money_amount,  
+		SUM(penalty_amount) penalty_amount,  
+		SUM(plan_late_fee) plan_late_fee,
+		SUM(cedit_amount) cedit_amount 
+	FROM 
+		asset_repayment_order_detail 
+	WHERE 
+		repayment_order_id = #{repaymentOrderId,jdbcType=INTEGER}
+	GROUP BY repayment_order_id
+  </select>
+  
+</mapper>

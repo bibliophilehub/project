@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" id="theme" th:href="@{/v2/css/theme-default.css}"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.15/datatables.min.css"/>
+</head>
+<body>
+    <div class="panel-body">
+        <table class="table" id="bigDataList">
+            <thead>
+            <tr>
+                <th>序号</th>
+                <th>名称</th>
+                <th>值</th>
+                <th>描述</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="backConfig,iterStat:${list}">
+                <td th:text="${iterStat.index+1	}" ></td>
+                <td th:text="${backConfig.sysName}"></td>
+                <td th:text="${backConfig.sysValue}"></td>
+                <td th:text="${backConfig.remark}"></td>
+                <td class="details">
+                    <a th:href="'/backConfigManagement/to-save?id='+${backConfig.id}" target="external-frame">编辑</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+<script type="text/javascript" th:src='@{/v2/js/jquery.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/jquery-ui.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/bootstrap.min.js}'></script>
+<script type='text/javascript' th:src='@{/v2/js/icheck.min.js}'></script>
+<script type="text/javascript" th:src="@{/v2/js/jquery.mCustomScrollbar.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/bootstrap-select.js}"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.15/datatables.min.js"></script>
+<script type="text/javascript" th:src="@{/v2/js/settings.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/plugins.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/actions.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/bootstrap-treeview.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/common.js}"></script>
+<script th:src="@{/js/page/create-page.js}" type="text/javascript"></script>
+<script th:src="@{/v2/js/dataTables.treeGrid.js}"></script>
+</html>

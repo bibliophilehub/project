@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IHomeDao">
+    <!-- 查询总已认证用户数 -->
+    <select id="getIdentificationUserCount" resultType="java.lang.Long">
+        select count(1) from borrow_user
+        where isVerified=1 and isCard=1 and isOperator=1 and isPhone=1
+    </select>
+
+    <!-- 今日认证用户数 -->
+    <select id="getDayIdentificationUserCount" resultType="java.lang.Long">
+        select  count(1) from borrow_user
+        where date_format(createTime,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+        and isVerified=1 and isCard=1 and isOperator=1 and isPhone=1
+    </select>
+
+    <!-- 累计放款金额 -->
+    <select id="getTotalLoanMoney" resultType="java.lang.Long">
+        select sum(money_amount) from asset_repayment_order
+    </select>
+    <!-- 累计放款笔数 -->
+    <select id="getTotalLoanCount" resultType="java.lang.Long">
+        select count(1) from asset_repayment_order
+    </select>
+    <!-- 当日放款笔数 -->
+    <select id="getDayTotalLoanCount" resultType="java.lang.Long">
+         select count(1) from asset_repayment_order
+         where date_format(credit_repayment_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+
+    <!--今日统计-->
+    <!-- 今日注册用户数 -->
+    <select id="getDayRegisterUserCount" resultType="java.lang.Long">
+        select  count(1) from borrow_user
+        where date_format(createTime,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+    <!--今日申请用户数-->
+    <select id="getDayApproveUserCount" resultType="java.lang.Long">
+        select count(1) from asset_borrow_order
+        where date_format(order_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+    <!--今日首次申请用户数-->
+    <select id="getDayFirstApproveUseCount" resultType="java.lang.Long">
+        select count(1) from asset_borrow_order
+        where apply_new = 0 and date_format(order_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+    <!--今日审核通过-->
+    <select id="getDayAdoptUserCount" resultType="java.lang.Long">
+        select count(1) from asset_borrow_order
+        where status not in (1,5) and date_format(audit_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+
+    <!--今日放款量-->
+    <select id="getDayTotalLoanMoney" resultType="java.lang.Long">
+        select sum(money_amount) from asset_repayment_order
+        where date_format(credit_repayment_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+    <!--今日首次放款量:今日首次注册用户放款的总金额-->
+    <select id="getDayFirstTotalMoney" resultType="java.lang.Long">
+        select sum(money_amount) from asset_repayment_order as aro
+        where date_format(credit_repayment_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+				and Exists (select 1 from asset_borrow_order where aro.order_id = id and apply_new = 0)
+    </select>
+    <!--今日赎回量-->
+    <select id="getDayRepaymentMoney" resultType="java.lang.Long">
+        select IFNULL(sum(money_amount),0) from asset_repayment_order
+        where order_status = 8 and date_format(repayment_real_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+    <!--今日首次申请通过-->
+    <select id="getDayFirstAdoptCount" resultType="java.lang.Long">
+        select count(1) from asset_borrow_order
+        where status not in (1,5) and date_format(audit_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d') and apply_new = 0
+    </select>
+
+    <!--历史统计-->
+    <!--历史注册-->
+    <select id="getUserCount" resultType="java.lang.Long">
+        select count(1) from borrow_user
+    </select>
+    <!--历史放款总量-->
+    <select id="getTotalBorrowInfo" resultType="java.lang.String">
+        select CONCAT(count(1),'/',FORMAT(sum(per_pay_money)/10000,2)) from asset_borrow_order
+        where status not in(1,2,4,5,14)
+    </select>
+    <!--历史赎回总量-->
+    <select id="getTotalRepaymentInfo" resultType="java.lang.String">
+        select CONCAT(count(1),'/',FORMAT(sum(repaymented_amount)/10000,2)) from asset_repayment_order
+        where order_status = 8
+    </select>
+    <!--历史续期总量-->
+    <select id="getTotalRenewalInfo" resultType="java.lang.String">
+        select CONCAT(IFNULL(count(1),0),'/',IFNULL(FORMAT(sum(money_amount)/10000,2),0)) from asset_renewal_order
+    </select>
+    <!--待赎回总量-->
+    <select id="getTotalNoRepaymentInfo" resultType="java.lang.String">
+        select CONCAT(IFNULL(count(1),0),'/',IFNULL(FORMAT(sum(money_amount)/10000,2),0)) from asset_repayment_order
+        where order_status in (6,7)
+    </select>
+    <!--逾期未赎回总量-->
+    <select id="getTotalOverdueInfo" resultType="java.lang.String">
+        select CONCAT(IFNULL(count(1),0),'/',IFNULL(FORMAT(sum(money_amount)/10000,2),0)) from asset_repayment_order
+        where order_status = 7
+    </select>
+    <!--逾期S1占比-->
+    <select id="getTotalOverdueS1Info" resultType="java.lang.String">
+        select CONCAT(IFNULL(count(1),0),'/',IFNULL(FORMAT(sum(money_amount)/10000,2),0)) from asset_repayment_order
+        where order_status = 7 and late_day BETWEEN 1 and 10
+    </select>
+    <!--逾期S2占比-->
+    <select id="getTotalOverdueS2Info" resultType="java.lang.String">
+        select CONCAT(IFNULL(count(1),0),'/',IFNULL(FORMAT(sum(money_amount)/10000,2),0)) from asset_repayment_order
+        where order_status = 7 and late_day BETWEEN 11 and 30
+    </select>
+
+    <!--风控统计-->
+    <!-- 机审累计订单数 -->
+    <select id="getForInstanceOrderCount" resultType="java.lang.Long">
+        select count(1) from asset_borrow_order where status not in (1)
+    </select>
+    <!-- 机审通过累计订单数 -->
+    <select id="getForInstanceAdoptOrderCount" resultType="java.lang.Long">
+         select count(1) from asset_borrow_order where status not in (1,5)
+    </select>
+    <!-- 今日机审订单数 -->
+    <select id="getDayForInstanceOrderCount" resultType="java.lang.Long">
+        select count(1) from asset_borrow_order where status not in (1)
+        and date_format(audit_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+    <!-- 今日机审通过订单数-->
+    <select id="getDayForInstanceAdoptOrderCount" resultType="java.lang.Long">
+        select count(1) from asset_borrow_order where status not in (1,5)
+        and date_format(audit_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+
+    <!--今日老客申请数-->
+    <select id="getDayOldApproveCount" resultType="java.lang.Long">
+        select count(1) from asset_borrow_order
+        where status not in (1) and apply_new = 1 and date_format(audit_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+
+    <!--今日老客通过数-->
+    <select id="getDayOldAdoptCount"  resultType="java.lang.Long">
+        select count(1) from asset_borrow_order
+        where status not in (1,5) and apply_new = 1 and date_format(audit_time,'%y-%m-%d')=date_format(now(),'%y-%m-%d')
+    </select>
+</mapper>

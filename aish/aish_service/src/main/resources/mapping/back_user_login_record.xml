@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IBackUserLoginRecordDao">
+    <select id="getPageList" parameterType="Map" resultType="com.inext.entity.BackUserLoginRecord">
+        select * from back_user_login_record blr
+        where 1=1
+        <if test="userId !=null and userId !='' and userId != 'null'">
+            and blr.user_id=#{userId}
+        </if>
+        <if test="loginIp !=null and loginIp !='' and loginIp != 'null'">
+            and blr.login_ip like CONCAT('%',#{loginIp},'%') 
+        </if>
+        ORDER BY blr.create_time DESC
+    </select>
+</mapper>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IEquipmentDao">
+	<!-- 查询设备信息 -->
+    <select id="getEquipmentList" resultType="com.inext.entity.EquipmentInfo">
+        select id,equipment_name as equipmentName, pice_url as piceUrl, memory , degree , price ,create_time as createTime
+         from app_equipment_info
+         order by price desc
+    </select>
+    <delete id="delById">
+    	delete from app_equipment_info where id=#{id}
+    </delete>
+
+
+</mapper>

@@ -1,0 +1,813 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IBorrowUserDao">
+	<select id="getBorrowUserByPhone" parameterType="HashMap" resultType="com.inext.entity.BorrowUser">
+   		select 
+   		id,
+		userAccount,
+		userPassword,
+		transactionPassword,
+		userPhone,
+		userName,
+		userCardNo,
+		userEducation,
+		userMarriage,
+		userProvince,
+		userCity,
+		userArea,
+		userAddress,
+		lengthOfStay,
+		isBlack,
+		isVerified,
+		verifiedTime,
+		cardCode,
+		cardType,
+		cardPhone,
+		isPhone,
+		phoneTime,
+		isCard,
+		cardTime,
+		operatorPassword,
+		isOperator,
+		operatorTime,
+		createTime,
+		updateTime,
+		humanFaceImg,
+		humanFaceImgUrl,
+		cardPositiveImg,
+		cardPositiveImgUrl,
+		cardAntiImg,
+		cardAntiImgUrl,
+		isWindControl,
+		channelId,
+		status,
+		isZhima,
+		zhimaScore,
+		zmAuthTime,
+		isYop
+   		from borrow_user bu 
+   		where status = 0 and bu.userAccount = #{userPhone}
+   </select>
+
+	<select id="getBorrowUserById" parameterType="HashMap" resultType="com.inext.entity.BorrowUser">
+		select
+		id,
+		userAccount,
+		userPassword,
+		transactionPassword,
+		userPhone,
+		userName,
+		userCardNo,
+		userEducation,
+		userMarriage,
+		userProvince,
+		userCity,
+		userArea,
+		userAddress,
+		lengthOfStay,
+		isBlack,
+		isVerified,
+		verifiedTime,
+		cardCode,
+		cardType,
+		cardPhone,
+		isPhone,
+		phoneTime,
+		isCard,
+		cardTime,
+		operatorPassword,
+		isOperator,
+		operatorTime,
+		createTime,
+		updateTime,
+		humanFaceImg,
+		humanFaceImgUrl,
+		cardPositiveImg,
+		cardPositiveImgUrl,
+		cardAntiImg,
+		cardAntiImgUrl,
+		isWindControl,
+		channelId,
+		status,
+		isYop
+		from borrow_user bu
+		where 1=1
+		<if test="id != null">
+			and bu.id = #{id}
+		</if>
+	</select>
+	<select id="gerBorrowUserByCardNumber" parameterType="String" resultType="com.inext.entity.BorrowUser">
+   		select 
+   		id,
+		userAccount,
+		userPassword,
+		transactionPassword,
+		userPhone,
+		userName,
+		userCardNo,
+		userEducation,
+		userMarriage,
+		userProvince,
+		userCity,
+		userArea,
+		userAddress,
+		lengthOfStay,
+		isBlack,
+		isVerified,
+		verifiedTime,
+		cardCode,
+		cardType,
+		cardPhone,
+		isPhone,
+		phoneTime,
+		isCard,
+		cardTime,
+		operatorPassword,
+		isOperator,
+		operatorTime,
+		createTime,
+		updateTime,
+		humanFaceImg,
+		humanFaceImgUrl,
+		cardPositiveImg,
+		cardPositiveImgUrl,
+		cardAntiImg,
+		cardAntiImgUrl,
+		isWindControl,
+		channelId,
+		status,
+		isYop
+   		from borrow_user bu 
+   		where userCardNo=#{cardNumber}
+   		
+   </select>
+	<select id="getBorrowUserByUId" parameterType="Integer" resultType="com.inext.entity.BorrowUser">
+   		select 
+   		id,
+		userAccount,
+		userPassword,
+		transactionPassword,
+		userPhone,
+		userName,
+		userCardNo,
+		userEducation,
+		userMarriage,
+		userProvince,
+		userCity,
+		userArea,
+		userAddress,
+		lengthOfStay,
+		isBlack,
+		isVerified,
+		verifiedTime,
+		cardCode,
+		cardType,
+		cardPhone,
+		isPhone,
+		phoneTime,
+		isCard,
+		cardTime,
+		operatorPassword,
+		isOperator,
+		operatorTime,
+		createTime,
+		updateTime,
+		humanFaceImg,
+		humanFaceImgUrl,
+		cardPositiveImg,
+		cardPositiveImgUrl,
+		cardAntiImg,
+		cardAntiImgUrl,
+		isWindControl,
+		channelId,
+		isZhima,
+		zhimaScore,
+		zmAuthTime,
+		status,
+		isYop,
+		isOld,
+        bindId
+   		from borrow_user bu 
+   		where id=#{id}
+   </select>
+	<insert id="saveBorrowUser" parameterType="com.inext.entity.BorrowUser" keyProperty="id" useGeneratedKeys="true">
+        insert into borrow_user(userAccount,userPassword,userPhone,status,channelId, isZhima, zhimaScore, createTime,updateTime)
+        values (#{userAccount},#{userPassword},#{userPhone},#{status},#{channelId}, #{isZhima},#{zhimaScore},NOW(),NOW())
+    </insert>
+
+	<update id="updateBorrowUser" parameterType="com.inext.entity.BorrowUser">
+		update borrow_user set
+		<if test="userPassword != null and userPassword !=''">
+			userPassword = #{userPassword},
+		</if>
+		<if test="transactionPassword != null and transactionPassword !=''">
+			transactionPassword = #{transactionPassword},
+		</if>
+		<if test="userName != null and userName !=''">
+			userName = #{userName},
+		</if>
+		<if test="userCardNo != null and userCardNo !=''">
+			userCardNo = #{userCardNo},
+		</if>
+		<if test="userEducation != null">
+			userEducation = #{userEducation},
+		</if>
+		<if test="userMarriage != null">
+			userMarriage = #{userMarriage},
+		</if>
+		<if test="userProvince != null and userProvince !=''">
+			userProvince = #{userProvince},
+		</if>
+		<if test="userCity != null and userCity !=''">
+			userCity = #{userCity},
+		</if>
+		<if test="userArea != null and userArea !=''">
+			userArea = #{userArea},
+		</if>
+		<if test="userAddress != null and userAddress !=''">
+			userAddress = #{userAddress},
+		</if>
+		<if test="lengthOfStay != null">
+			lengthOfStay = #{lengthOfStay},
+		</if>
+		<if test="isBlack != null">
+			isBlack = #{isBlack},
+		</if>
+		<if test="isVerified != null">
+			isVerified = #{isVerified},
+		</if>
+		<if test="verifiedTime != null">
+			verifiedTime = NOW(),
+		</if>
+		<if test="cardCode != null and cardCode !=''">
+			cardCode = #{cardCode},
+		</if>
+		<if test="cardType != null">
+			cardType = #{cardType},
+		</if>
+		<if test="cardPhone != null and cardPhone !=''">
+			cardPhone = #{cardPhone},
+		</if>
+		<if test="isPhone != null">
+			isPhone = #{isPhone},
+		</if>
+		<if test="phoneTime != null">
+			phoneTime = NOW(),
+		</if>
+		<if test="isCard != null">
+			isCard = #{isCard},
+		</if>
+		<if test="cardTime != null">
+			cardTime = NOW(),
+		</if>
+		<if test="operatorPassword != null and operatorPassword !=''">
+			operatorPassword = #{operatorPassword},
+		</if>
+		<if test="isOperator != null">
+			isOperator = #{isOperator},
+		</if>
+		<if test="operatorTime != null">
+			operatorTime = NOW(),
+		</if>
+		<if test="humanFaceImg != null and humanFaceImg !=''">
+			humanFaceImg = #{humanFaceImg},
+		</if>
+		<if test="humanFaceImgUrl != null and humanFaceImgUrl !=''">
+			humanFaceImgUrl = #{humanFaceImgUrl},
+		</if>
+		<if test="cardPositiveImg != null and cardPositiveImg !=''">
+			cardPositiveImg = #{cardPositiveImg},
+		</if>
+		<if test="cardPositiveImgUrl != null and cardPositiveImgUrl !=''">
+			cardPositiveImgUrl = #{cardPositiveImgUrl},
+		</if>
+		<if test="cardAntiImg != null and cardAntiImg !=''">
+			cardAntiImg = #{cardAntiImg},
+		</if>
+		<if test="cardAntiImgUrl != null and cardAntiImgUrl !=''">
+			cardAntiImgUrl = #{cardAntiImgUrl},
+		</if>
+		<if test="isWindControl != null">
+			isWindControl = #{isWindControl},
+		</if>
+		<if test="status != null">
+			status = #{status},
+		</if>
+		<if test="channelId != null and channelId != -1">
+			channelId = #{channelId},
+		</if>
+		<if test="isZhima != null">
+			isZhima = #{isZhima},
+		</if>
+		<if test="zhimaScore != null">
+			zhimaScore = #{zhimaScore},
+		</if>
+		<if test="zmAuthTime != null">
+			zmAuthTime = #{zmAuthTime},
+		</if>
+		<if test="isYop != null">
+			isYop = #{isYop},
+		</if>
+		<if test="isOld != null">
+			isOld = #{isOld},
+		</if>
+		<if test="bindId != null">
+			bindId = #{bindId},
+		</if>
+		updateTime = NOW()
+		where
+		id = #{id}
+	</update>
+
+	<insert id="saveBorrowUserPhone" useGeneratedKeys="true" parameterType="java.util.List">
+		<selectKey resultType="long" keyProperty="id" order="AFTER">
+			SELECT
+			LAST_INSERT_ID()
+		</selectKey>
+		insert into borrow_userphone (
+		name,
+		phone,
+		userId,
+		createTime
+		) values
+		<foreach collection="list" item="item" index="index" separator="," >
+			(
+			#{item.name},
+			#{item.phone},
+			#{item.userId},
+			NOW()
+			)
+		</foreach>
+	</insert>
+	<insert id="saveBorrowUserJxl" parameterType="com.inext.entity.BorrowUserJxl" keyProperty="id" useGeneratedKeys="true">
+	    insert into borrow_userjxl (
+	    	userId,
+	    	token,
+	    	createTime,
+	    	updateTime
+	    ) values (
+	   	 	#{userId},
+	        #{token},
+	        NOW(),
+	        NOW()
+	    )
+	</insert>
+
+	<select id="getBorrowUserMessage" parameterType="HashMap" resultType="com.inext.entity.BorrowUserMessage">
+		select
+		id,
+		ifnull(title,'') as title,
+		ifnull(content,'') as content,
+		type,
+		userId,
+		createTime,
+		updateTime,
+		isread,
+		status
+		from borrow_usermessage bum
+		where 1=1
+		<if test="userId != null">
+			and userId = #{userId}
+		</if>
+		<if test="id != null">
+			and id = #{id}
+		</if>
+		and status = 0
+	</select>
+	<update id="updateBorrowUserMessage"  parameterType="com.inext.entity.BorrowUserMessage">
+		UPDATE  borrow_usermessage
+		set
+		<if test="isread!=null and isread!=''">
+			isread = #{isread}
+		</if>
+		where id = #{id}
+	</update>
+
+	<select id="queryBorrowUser" parameterType="HashMap" resultType="HashMap">
+		select
+		bu.id,
+		bu.userAccount,
+		bu.userPassword,
+		case when bu.transactionPassword is null then '否' else '是' end transactionPassword,
+		bu.userPhone,
+		bu.userName,
+		bu.userCardNo,
+		ifnull((select code_value from sys_code where code_name='userEducation' and code_key = bu.userEducation),'') as userEducation,
+		ifnull((select code_value from sys_code where code_name='userMarriage' and code_key = bu.userMarriage),'') as userMarriage,
+		ifnull((select area_name from rb_area where id = bu.userProvince),'') as userProvince,
+		ifnull((select area_name from rb_area where id = bu.userCity),'') as userCity,
+		ifnull((select area_name from rb_area where id = bu.userArea),'') as userArea,
+		ifnull(bu.userAddress,'') as userAddress,
+		ifnull((select code_value from sys_code where code_name='lengthOfStay' and code_key = bu.lengthOfStay),'') as lengthOfStay,
+		ifnull(bu.isBlack,0) as black,
+		case when bu.isBlack is null then '否' when bu.isBlack = 1 then '是' when bu.isBlack = '0' then '否' else '否' end isBlack,
+		case when bu.isVerified is null then '否' when bu.isVerified = 1 then '是' when bu.isVerified = '0' then '否' else '否' end isVerified,
+		ifnull(bu.verifiedTime,'') as verifiedTime,
+		ifnull(bu.cardCode,'') as cardCode,
+		ifnull(bu.cardType,'') as cardType,
+		ifnull(bu.cardPhone,'') as cardPhone,
+		case when bu.isPhone is null then '否' when bu.isPhone = 1 then '是' when bu.isPhone = '0' then '否' else '否' end isPhone,
+		ifnull(bu.phoneTime,'') as phoneTime,
+		case when bu.isCard is null then '否' when bu.isCard = 1 then '是' when bu.isCard = '0' then '否' else '否' end isCard,
+		ifnull(cardTime,'') as cardTime,
+		operatorPassword,
+		case when bu.isOperator is null then '否' when bu.isOperator = 1 then '是' when bu.isOperator = '0' then '否' else '否' end isOperator,
+		ifnull(bu.operatorTime,'') as operatorTime,
+		ifnull(DATE_FORMAT(bu.createTime,'%Y-%m-%d %H:%i:%S'),'') as createTime,
+		bu.updateTime,
+		ifnull(bu.humanFaceImg,'') as humanFaceImg,
+		bu.humanFaceImgUrl,
+		ifnull(bu.cardPositiveImg,'') as cardPositiveImg,
+		bu.cardPositiveImgUrl,
+		ifnull(bu.cardAntiImg,'') as cardAntiImg,
+		bu.cardAntiImgUrl,
+		bu.isWindControl,
+		case when bu.isZhima is null then '否' when bu.isZhima = 1 then '是' when bu.isZhima = '0' then '否' else '否' end isZhima,
+		bu.zhimaScore,
+		bu.zmAuthTime,
+		bu.status,
+		if(bu.channelId=0,'自然流量',if(chi.channel_name is not null,chi.channel_name,'未知')) channelName,
+		isYop,
+		IFNULL(rcu.score,'未风控') score,
+		IFNULL(rcu.detail,'') detail,
+		case when bu.isOld is null then '否' when bu.isOld = 1 then '是' when bu.isOld = '0' then '否' else '否' end isOld
+		from borrow_user bu
+		left join channel_info chi on bu.channelId=chi.id
+		left join (SELECT
+		bu.id,
+		rcu.score,
+		rcu.detail
+		FROM
+		risk_credit_user rcu
+		right JOIN (SELECT* FROM(SELECT
+		bu.id,MAX(rcu.id) rucid
+		FROM
+		borrow_user bu
+		INNER JOIN risk_credit_user rcu on rcu.user_id =bu.id
+		GROUP BY bu.id) a) bu on bu.rucid=rcu.id) rcu on rcu.id=bu.id
+		where 1=1
+		<if test="userId != null and userId != 0">
+			and bu.id = #{userId}
+		</if>
+		<if test="isBlack != null and isBlack != 0">
+			and bu.isBlack = #{isBlack}
+		</if>
+		<if test="channelId != null and channelId != -1">
+			and bu.channelId = #{channelId}
+		</if>
+		<if test="userName != null and userName != ''">
+			<![CDATA[and bu.userName like concat('%', #{userName,jdbcType=VARCHAR}, '%')]]>
+		</if>
+		<if test="userCardNo != null and userCardNo != ''">
+			<![CDATA[and bu.userCardNo like concat('%', #{userCardNo,jdbcType=VARCHAR}, '%')]]>
+		</if>
+		<if test="userPhone != null and userPhone != ''">
+			<![CDATA[and bu.userPhone like concat('%', #{userPhone,jdbcType=VARCHAR}, '%')]]>
+		</if>
+		<if test="startDate != null">
+			<![CDATA[ and bu.createTime >= STR_TO_DATE(CONCAT(#{startDate},'00:00:00'),'%Y-%m-%d %H:%i:%S')]]>
+		</if>
+		<if test="endDate != null">
+			<![CDATA[ and bu.createTime <= STR_TO_DATE(CONCAT(#{endDate},'23:59:59'),'%Y-%m-%d %H:%i:%S')]]>
+		</if>
+		order by bu.createTime desc
+	</select>
+	<select id="exportBorrowUser" parameterType="HashMap" resultType="HashMap">
+		select
+		bu.id,
+		bu.userAccount,
+		bu.userPassword,
+		case when bu.transactionPassword is null then '否' else '是' end transactionPassword,
+		REPLACE(bu.userPhone, SUBSTR(bu.userPhone,4,4), '****') userPhone,
+		bu.userName,
+		bu.userCardNo,
+		ifnull((select code_value from sys_code where code_name='userEducation' and code_key = bu.userEducation),'') as userEducation,
+		ifnull((select code_value from sys_code where code_name='userMarriage' and code_key = bu.userMarriage),'') as userMarriage,
+		ifnull((select area_name from rb_area where id = bu.userProvince),'') as userProvince,
+		ifnull((select area_name from rb_area where id = bu.userCity),'') as userCity,
+		ifnull((select area_name from rb_area where id = bu.userArea),'') as userArea,
+		ifnull(bu.userAddress,'') as userAddress,
+		ifnull((select code_value from sys_code where code_name='lengthOfStay' and code_key = bu.lengthOfStay),'') as lengthOfStay,
+		ifnull(bu.isBlack,0) as black,
+		case when bu.isBlack is null then '否' when bu.isBlack = 1 then '是' when bu.isBlack = '0' then '否' else '否' end isBlack,
+		case when bu.isVerified is null then '否' when bu.isVerified = 1 then '是' when bu.isVerified = '0' then '否' else '否' end isVerified,
+		ifnull(bu.verifiedTime,'') as verifiedTime,
+		ifnull(bu.cardCode,'') as cardCode,
+		ifnull(bu.cardType,'') as cardType,
+		ifnull(bu.cardPhone,'') as cardPhone,
+		case when bu.isPhone is null then '否' when bu.isPhone = 1 then '是' when bu.isPhone = '0' then '否' else '否' end isPhone,
+		ifnull(bu.phoneTime,'') as phoneTime,
+		case when bu.isCard is null then '否' when bu.isCard = 1 then '是' when bu.isCard = '0' then '否' else '否' end isCard,
+		ifnull(cardTime,'') as cardTime,
+		operatorPassword,
+		case when bu.isOperator is null then '否' when bu.isOperator = 1 then '是' when bu.isOperator = '0' then '否' else '否' end isOperator,
+		ifnull(bu.operatorTime,'') as operatorTime,
+		ifnull(DATE_FORMAT(bu.createTime,'%Y-%m-%d %H:%i:%S'),'') as createTime,
+		bu.updateTime,
+		ifnull(bu.humanFaceImg,'') as humanFaceImg,
+		bu.humanFaceImgUrl,
+		ifnull(bu.cardPositiveImg,'') as cardPositiveImg,
+		bu.cardPositiveImgUrl,
+		ifnull(bu.cardAntiImg,'') as cardAntiImg,
+		bu.cardAntiImgUrl,
+		bu.isWindControl,
+		case when bu.isZhima is null then '否' when bu.isZhima = 1 then '是' when bu.isZhima = '0' then '否' else '否' end isZhima,
+		bu.zhimaScore,
+		bu.zmAuthTime,
+		bu.status,
+		if(bu.channelId=0,'自然流量',if(chi.channel_name is not null,chi.channel_name,'未知')) channelName,
+		isYop,
+		IFNULL(rcu.score,'未风控') score,
+		IFNULL(rcu.detail,'') detail,
+		case when bu.isOld is null then '否' when bu.isOld = 1 then '是' when bu.isOld = '0' then '否' else '否' end isOld
+		from borrow_user bu
+		left join channel_info chi on bu.channelId=chi.id
+		left join (SELECT
+		bu.id,
+		rcu.score,
+		rcu.detail
+		FROM
+		risk_credit_user rcu
+		right JOIN (SELECT* FROM(SELECT
+		bu.id,MAX(rcu.id) rucid
+		FROM
+		borrow_user bu
+		INNER JOIN risk_credit_user rcu on rcu.user_id =bu.id
+		GROUP BY bu.id) a) bu on bu.rucid=rcu.id) rcu on rcu.id=bu.id
+		where 1=1
+		<if test="userId != null and userId != 0">
+			and bu.id = #{userId}
+		</if>
+		<if test="isBlack != null and isBlack != 0">
+			and bu.isBlack = #{isBlack}
+		</if>
+		<if test="channelId != null and channelId != -1">
+			and bu.channelId = #{channelId}
+		</if>
+		<if test="userName != null and userName != ''">
+			<![CDATA[and bu.userName like concat('%', #{userName,jdbcType=VARCHAR}, '%')]]>
+		</if>
+		<if test="userCardNo != null and userCardNo != ''">
+			<![CDATA[and bu.userCardNo like concat('%', #{userCardNo,jdbcType=VARCHAR}, '%')]]>
+		</if>
+		<if test="userPhone != null and userPhone != ''">
+			<![CDATA[and bu.userPhone like concat('%', #{userPhone,jdbcType=VARCHAR}, '%')]]>
+		</if>
+		<if test="startDate != null">
+			<![CDATA[ and bu.createTime >= STR_TO_DATE(CONCAT(#{startDate},'00:00:00'),'%Y-%m-%d %H:%i:%S')]]>
+		</if>
+		<if test="endDate != null">
+			<![CDATA[ and bu.createTime <= STR_TO_DATE(CONCAT(#{endDate},'23:59:59'),'%Y-%m-%d %H:%i:%S')]]>
+		</if>
+		order by bu.createTime desc
+	</select>
+	<select id="queryBorrowUserPhone" parameterType="HashMap" resultType="com.inext.entity.BorrowUserPhone">
+   		select id,name,phone,userId,createTime from borrow_userphone buh where userId = #{userId}
+   </select>
+
+	<update id="updateZmExpiredUser"  parameterType="HashMap">
+		UPDATE  borrow_user
+		set isZhima=0
+		where isZhima=1 and <![CDATA[zmAuthTime <= #{expireTime} ]]>
+	</update>
+
+	<select id="getUserByPhoneMi" parameterType="String" resultType="com.inext.entity.BorrowUser">
+   		select
+   		id,
+		userAccount,
+		userPassword,
+		transactionPassword,
+		userPhone,
+		userName,
+		userCardNo,
+		userEducation,
+		userMarriage,
+		userProvince,
+		userCity,
+		userArea,
+		userAddress,
+		lengthOfStay,
+		isBlack,
+		isVerified,
+		verifiedTime,
+		cardCode,
+		cardType,
+		cardPhone,
+		isPhone,
+		phoneTime,
+		isCard,
+		cardTime,
+		operatorPassword,
+		isOperator,
+		operatorTime,
+		createTime,
+		updateTime,
+		humanFaceImg,
+		humanFaceImgUrl,
+		cardPositiveImg,
+		cardPositiveImgUrl,
+		cardAntiImg,
+		cardAntiImgUrl,
+		isWindControl,
+		channelId,
+		status,
+		isYop
+   		from borrow_user bu
+   		where md5(userPhone)=#{phone_md5}
+
+   </select>
+
+	<select id="getXuyao" resultType="com.inext.entity.BorrowUser">
+   	  		select
+   		id,
+		userAccount,
+		userPassword,
+		transactionPassword,
+		userPhone,
+		userName,
+		userCardNo,
+		userEducation,
+		userMarriage,
+		userProvince,
+		userCity,
+		userArea,
+		userAddress,
+		lengthOfStay,
+		isBlack,
+		isVerified,
+		verifiedTime,
+		cardCode,
+		cardType,
+		cardPhone,
+		isPhone,
+		phoneTime,
+		isCard,
+		cardTime,
+		operatorPassword,
+		isOperator,
+		operatorTime,
+		createTime,
+		updateTime,
+		humanFaceImg,
+		humanFaceImgUrl,
+		cardPositiveImg,
+		cardPositiveImgUrl,
+		cardAntiImg,
+		cardAntiImgUrl,
+		isWindControl,
+		channelId,
+		status,
+		isZhima,
+		zhimaScore,
+		zmAuthTime,
+		isYop
+		from  borrow_user   where  isZhima   = 0 and  createTime  BETWEEN ('2018-11-30 00:00:01')
+		and ('2018-12-01 23:59:59')  order by id desc
+	</select>
+
+
+	<select id="getUserByIdForAddress" parameterType="Integer" resultType="com.inext.entity.BorrowUser">
+   		select
+   		bu.id,
+		bu.userAccount,
+		bu.userPassword,
+		bu.transactionPassword,
+		bu.userPhone,
+		bu.userName,
+		bu.userCardNo,
+		bu.userEducation,
+		bu.userMarriage,
+		bu.userProvince,
+		bu.userCity,
+		bu.userArea,
+		bu.userAddress,
+		bu.lengthOfStay,
+		bu.isBlack,
+		bu.isVerified,
+		bu.verifiedTime,
+		bu.cardCode,
+		bu.cardType,
+		bu.cardPhone,
+		bu.isPhone,
+		bu.phoneTime,
+		bu.isCard,
+		bu.cardTime,
+		bu.operatorPassword,
+		bu.isOperator,
+		bu.operatorTime,
+		bu.createTime,
+		bu.updateTime,
+		bu.humanFaceImg,
+		bu.humanFaceImgUrl,
+		bu.cardPositiveImg,
+		bu.cardPositiveImgUrl,
+		bu.cardAntiImg,
+		bu.cardAntiImgUrl,
+		bu.isWindControl,
+		bu.channelId,
+		bu.status,
+		bu.isZhima,
+		bu.zhimaScore,
+		bu.zmAuthTime,
+		bu.isYop,
+		rb1.`area_name`  as userProvinceStr,
+	    rb2.`area_name` as userCityStr,
+		rb3.`area_name` as userAreaStr
+   		from borrow_user bu LEFT JOIN `rb_area` rb1 on bu.`userProvince`  = rb1.`id` LEFT JOIN `rb_area` rb2 on bu.`userCity`  = rb2.`id`
+		LEFT JOIN `rb_area` rb3 on bu.`userArea` = rb3.id
+		where bu.id=#{id}
+   </select>
+
+
+	<!-- add by zhouliang -->
+	<select id="getAuthList" resultType="com.inext.entity.BorrowUser">
+		SELECT a.* FROM `borrow_user` a where a.`isOperator` = 3 order by a.id asc
+   </select>
+
+	<!--更新运营商认证状态-->
+	<update id="updateBorrowUserMobileAuthStatus" parameterType="HashMap">
+		UPDATE `borrow_user` SET `isOperator` = 0
+		WHERE
+		<if test="expiredTime != null and expiredTime != ''">
+			<![CDATA[ DATE_FORMAT(operatorTime, '%Y-%m-%d') <=  #{expiredTime} ]]>
+		</if>
+	</update>
+	<!--用户详情-->
+	<select id="querySignleBorrowUser" parameterType="HashMap" resultType="HashMap">
+		select
+		bu.id,
+		bu.userAccount,
+		bu.userPassword,
+		case when bu.transactionPassword is null then '否' else '是' end transactionPassword,
+		bu.userPhone,
+		bu.userName,
+		bu.userCardNo,
+		ifnull((select code_value from sys_code where code_name='userEducation' and code_key = bu.userEducation),'') as userEducation,
+		ifnull((select code_value from sys_code where code_name='userMarriage' and code_key = bu.userMarriage),'') as userMarriage,
+		ifnull((select area_name from rb_area where id = bu.userProvince),'') as userProvince,
+		ifnull((select area_name from rb_area where id = bu.userCity),'') as userCity,
+		ifnull((select area_name from rb_area where id = bu.userArea),'') as userArea,
+		ifnull(bu.userAddress,'') as userAddress,
+		ifnull((select code_value from sys_code where code_name='lengthOfStay' and code_key = bu.lengthOfStay),'') as lengthOfStay,
+		ifnull(bu.isBlack,0) as black,
+		case when bu.isBlack is null then '否' when bu.isBlack = 1 then '是' when bu.isBlack = '0' then '否' else '否' end isBlack,
+		case when bu.isVerified is null then '否' when bu.isVerified = 1 then '是' when bu.isVerified = '0' then '否' else '否' end isVerified,
+		ifnull(bu.verifiedTime,'') as verifiedTime,
+		ifnull(bu.cardCode,'') as cardCode,
+		ifnull(bu.cardType,'') as cardType,
+		ifnull(bu.cardPhone,'') as cardPhone,
+		case when bu.isPhone is null then '否' when bu.isPhone = 1 then '是' when bu.isPhone = '0' then '否' else '否' end isPhone,
+		ifnull(bu.phoneTime,'') as phoneTime,
+		case when bu.isCard is null then '否' when bu.isCard = 1 then '是' when bu.isCard = '0' then '否' else '否' end isCard,
+		ifnull(cardTime,'') as cardTime,
+		operatorPassword,
+		case when bu.isOperator is null then '否' when bu.isOperator = 1 then '是' when bu.isOperator = '0' then '否' else '否' end isOperator,
+		ifnull(bu.operatorTime,'') as operatorTime,
+		ifnull(DATE_FORMAT(bu.createTime,'%Y-%m-%d %H:%i:%S'),'') as createTime,
+		bu.updateTime,
+		ifnull(bu.humanFaceImg,'') as humanFaceImg,
+		bu.humanFaceImgUrl,
+		ifnull(bu.cardPositiveImg,'') as cardPositiveImg,
+		bu.cardPositiveImgUrl,
+		ifnull(bu.cardAntiImg,'') as cardAntiImg,
+		bu.cardAntiImgUrl,
+		bu.isWindControl,
+		case when bu.isZhima is null then '否' when bu.isZhima = 1 then '是' when bu.isZhima = '0' then '否' else '否' end isZhima,
+		bu.zhimaScore,
+		bu.zmAuthTime,
+		bu.status,
+		if(bu.channelId=0,'自然流量',if(chi.channel_name is not null,chi.channel_name,'未知')) channelName,
+		isYop,
+		IFNULL(rcu.score,'未风控') score,
+		IFNULL(rcu.detail,'') detail,
+		case when bu.isOld is null then '否' when bu.isOld = 1 then '是' when bu.isOld = '0' then '否' else '否' end isOld
+		from borrow_user bu
+		left join channel_info chi on bu.channelId=chi.id
+		left join risk_credit_user rcu on bu.id = rcu.user_id
+		where bu.id = #{userId}
+		<if test="isBlack != null and isBlack != 0">
+			and bu.isBlack = #{isBlack}
+		</if>
+		<if test="channelId != null and channelId != -1">
+			and bu.channelId = #{channelId}
+		</if>
+		<if test="userName != null and userName != ''">
+			<![CDATA[and bu.userName like concat('%', #{userName,jdbcType=VARCHAR}, '%')]]>
+		</if>
+		<if test="userCardNo != null and userCardNo != ''">
+			<![CDATA[and bu.userCardNo like concat('%', #{userCardNo,jdbcType=VARCHAR}, '%')]]>
+		</if>
+		<if test="userPhone != null and userPhone != ''">
+			<![CDATA[and bu.userPhone like concat('%', #{userPhone,jdbcType=VARCHAR}, '%')]]>
+		</if>
+		<if test="startDate != null">
+			<![CDATA[ and bu.createTime >= STR_TO_DATE(CONCAT(#{startDate},'00:00:00'),'%Y-%m-%d %H:%i:%S')]]>
+		</if>
+		<if test="endDate != null">
+			<![CDATA[ and bu.createTime <= STR_TO_DATE(CONCAT(#{endDate},'23:59:59'),'%Y-%m-%d %H:%i:%S')]]>
+		</if>
+		ORDER BY rcu.id DESC limit 1
+	</select>
+</mapper>

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8" />
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" type="text/css" id="theme"
+	th:href="@{/v2/css/theme-default.css}" />
+<link rel="stylesheet" type="text/css"
+	th:href="@{/v2/css/jqueryDatatable.css}" />
+</head>
+<body>
+	<form role="form"
+		th:action="@{/assetRepaymentOrder/pageList?type=6}" id="formpro"
+		class="form-horizontal">
+		<input type="hidden" id="type" name="type" value="6"/>
+		<div class="block no-col-padding" style="margin-bottom: 0;">
+			<div class="form-group col-md-12 btn-form" style="text-align: left;">
+				<button type="button" id="export" class="btn btn-info">导出excel</button>
+				<a style="display: none"
+					th:href="@{/assetRepaymentOrder/pageListExport}"
+					id="exportExcel">导出</a>
+			</div>
+			<div class="form-group col-md-4">
+				<label class="col-md-4 control-label">订单号：</label>
+				<div class="col-md-8">
+					 <input type="text" id="orderId" name="orderId" th:value="${orderId}"/>
+				</div>
+			</div>
+			<div class="form-group col-md-4">
+				<label class="col-md-4 control-label">手机：</label>
+				<div class="col-md-8">
+					 <input type="text" id="userPhone" name="userPhone" th:value="${userPhone}"/>
+				</div>
+			</div>
+			<div class="form-group col-md-4">
+				<label class="col-md-4 control-label">姓名：</label>
+				<div class="col-md-8">
+					 <input type="text" id="userName" name="userName" th:value="${userName}"/>
+				</div>
+			</div>
+			<div class="form-group col-md-4">
+				<label class="col-md-4 control-label">状态：</label>
+				<div class="col-md-8">
+					<select class="form-control" id="orderStatus" name="orderStatus">
+						<option value="">全部</option>
+						<option value="6">待还款</option>
+						<option value="7">已逾期</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group col-md-4 min-w330">
+				<label class="col-md-4 control-label">应还款时间</label>
+				<div class="col-md-8">
+					<input name="startDate" id="startDate" th:value="${startDate}"
+						type="text" class="required"
+						style="width: 45%; float: left; padding: 6px 9px;"
+						onfocus="WdatePicker({isShowClear:true,readOnly:false,dateFmt:'yyyy-MM-dd',maxDate:'#F{$dp.$D(\'endDate\')||\'%y-%M-%d\'}',minDate:'#F{$dp.$D(\'endDate\',{d:-30})}'})"
+						title="请输入开始日期" size="30" /><span class="line">-</span><input
+						name="endDate" style="width: 45%; float: left; padding: 6px 9px;"
+						id="endDate" th:value="${endDate}" type="text" class="required"
+						onfocus="WdatePicker({isShowClear:true,readOnly:false,dateFmt:'yyyy-MM-dd',minDate:'#F{$dp.$D(\'startDate\')||\'%y-%M-%d\'}',maxDate:'#F{$dp.$D(\'startDate\',{d:30})||\'%y-%M-%d\'}'})"
+						title="请输入截止日期" size="30" />
+				</div>
+			</div>
+			<div class="form-group col-md-4">
+				<label class="col-md-4 control-label">渠道:</label>
+				<div class="col-md-8">
+					<select class="form-control" id="channelId" name="channelId">
+						<option th:value="-1" th:text="全部" th:selected="${channelId} == -1" selected="selected"/>
+						<option th:value="0" th:text="自然流量" th:selected="${channelId} == 0" />
+						<option th:each="item, itemStat: ${channelList}"
+								th:selected="${item.id} == ${channelId}"	th:value="${item.id}" th:text="${item.channelName}" />
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group col-md-4">
+				<label class="col-md-4 control-label">资方:</label>
+				<div class="col-md-8">
+					<select class="form-control" id="paymentChannel" name="paymentChannel">
+						<option value="" th:text="全部" th:selected="${paymentChannel} == ''" selected="selected"/>
+						<!--<option th:value="0" th:text="自然流量" th:selected="${channelId} == 0" />selected="${channelId} == 0" selected="selected"/>-->
+						<option th:each="item, itemStat: ${paymentChannels}"
+								th:selected="${item.key} == ${paymentChannel}" th:value="${item.key}"
+								th:text="${item.value}"/>
+					</select>
+				</div>
+			</div>
+			<!--
+			<div class="form-group col-md-4">
+				<label class="col-md-4 control-label">逾期手别:</label>
+				<div class="col-md-8">
+					<select class="form-control" id="latelevel" name="latelevel">
+						<option value="" selected="selected"/>
+						<option value="1">S1</option>
+						<option value="2">S2</option>
+						<option value="3">M1</option>
+						<option value="4">M2</option>
+						<option value="5">M2+</option>
+					</select>
+				</div>
+			</div>
+			-->
+			<div class="form-group col-md-4 btn-form" style="text-align: right;">
+				<button type="submit" class="btn btn-info" id="queryOperate">查询</button>
+			</div>
+		</div>
+		<input id="sortColumn" name="sortColumn" th:value="${sortColumn}" type="hidden" />
+		<input id="sortFlag" name="sortFlag" value="0" type="hidden" />
+	</form>
+	<div class="panel-body">
+
+		<table class="table" id="bigDataList">
+			<thead>
+				<tr>
+					<th onclick="doSort('order_id','sortFlag')">订单号</th>
+					<th onclick="doSort('user_name','sortFlag')">姓名</th>
+					<th onclick="doSort('user_phone','sortFlag')">手机号</th>
+					<th onclick="doSort('money_amount','sortFlag')">借款金额</th>
+					<th onclick="doSort('penalty_amount','sortFlag')">违约金</th>
+					<th onclick="doSort('plan_late_fee','sortFlag')">滞纳金</th>
+					<th onclick="doSort('cedit_amount','sortFlag')">累计减免金额</th>
+					<th onclick="doSort('repayment_amount','sortFlag')">累计应还金额</th>
+					<th>剩余待还金额</th>
+					<th onclick="doSort('repaymented_amount','sortFlag')">已还金额</th>
+					<th onclick="doSort('credit_repayment_time','sortFlag')">放款时间</th>
+					<th onclick="doSort('payment_channel','sortFlag')">资方</th>
+					<th onclick="doSort('repayment_time','sortFlag')">应还款时间</th>
+					<th onclick="doSort('late_day','sortFlag')">逾期天数</th>
+					<th onclick="doSort('order_status','sortFlag')">状态</th>
+					<th>风控</th>
+					<th onclick="doSort('channelId','sortFlag')">渠道</th>
+					<th onclick="doSort('apply_new','sortFlag')">老用户</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="page,iterStat:${pageInfo.list}">
+					<td th:text="${page.orderId}"></td>
+					<td th:text="${page.userName}"></td>
+					<td th:text="${T(com.inext.utils.DataFormat).getUserPhoneNo(page.userPhone)}"></td>
+					<td th:text="${page.moneyAmount}"></td>
+					<td th:text="${page.penaltyAmount}"></td>
+					<td th:text="${page.planLateFee}"></td>
+					<td th:text="${page.ceditAmount}"></td>
+					<td th:text="${page.repaymentAmount}"></td>
+					<td th:text="${page.shouldRepayAmount}"></td>
+					<td th:text="${page.repaymentedAmount}"></td>
+					<td th:text="${page.creditRepaymentTime==null?'':#dates.format(page.creditRepaymentTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                    <td th:text="${paymentChannels[page.paymentChannel]}"></td>
+					<td th:text="${page.repaymentTime==null?'':#dates.format(page.repaymentTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+					<td th:text="${page.lateDay}"></td>
+					<td th:text="${orderStatusMap[page.orderStatus]}"></td>
+					<td>
+						<span target="external-frame" th:text="${page.score}"></span>
+						<br/>
+						<span target="external-frame" th:text="${page.detail}"></span>
+					</td>
+					<td th:text="${page.channelName}"></td>
+					<td th:text="${page.applyNew==1?'是':'否'}"></td>
+					<td><a th:href="'/borrowUser/borrowUserDetail?userId='+${page.userId}" >详情</a>&nbsp;&nbsp;
+						<a href="#" th:onclick="${'assetRepaymented('+page.orderId+','+page.shouldRepayAmount+','+page.repaymentAmount+','+page.ceditAmount+','+page.repaymentedAmount+')'}">还款</a>
+						<a href="#" th:onclick="${'assetRenewal('+page.orderId+','''+(page.lateDay)+''','''+(page.userName)+''','''+(#dates.format(page.repaymentTime,'yyyy-MM-dd HH:mm:ss'))+''','''+(#dates.format(page.renewalRepaymentTime,'yyyy-MM-dd HH:mm:ss'))+''','''+(page.penaltyAmount)+''')'}">续期</a>
+					</td>
+
+				</tr>
+			</tbody>
+		</table>
+		<div class="message-box animated fadeIn" data-sound="alert" id="box">
+			<div class="nav col-md-8 nav-ul" style="left: 18%; top: 16%;">
+				<form action="" id="repaymentAmountForm">
+				<input type="hidden" name="orderId" id="orderPayId" />
+					<table class="openBox">
+						<tr>
+							<td class="td-left">还款金额(元)<font color="red">*</font></td>
+							<td class="td-right">
+							    <input type="text" name="repaymentAmounted" id="repaymentAmounted" placeholder="请输入还款金额"/>
+							</td>
+							<td class="td-left">剩余待还金额(元)</td>
+							<td class="td-right"><input name="repaymentAmount" id="repaymentAmount"
+								type="text" readonly="readonly"/></td>
+							<td class="td-left">累计应还金额(元)</td>
+							<td class="td-right"><input type="text" id="leijiyinghuan" readonly="readonly"/></td>
+						</tr>
+						<tr>
+							<td class="td-left">本次减免金额(元)</td>
+							<td class="td-right" colspan="3">
+								<input type="text" name="ceditAmount" id="ceditAmount" style="width: 45%" placeholder="请输入减免金额"/>
+							</td>
+							<td class="td-left">累计减免金额(元)</td>
+							<td class="td-right"><input type="text" id="leijijianmian" readonly="readonly"/></td>
+						</tr>
+						<tr>
+							<!--td class="td-left">还款时间<font color="red">*</font></td>
+							<td class="td-right" colspan="3"><input name="createdAt"
+								style="width: 45%; float: left; padding: 6px 9px;"
+								id="createdAt" type="text"
+								class="required"
+								onfocus="WdatePicker({isShowClear:true,readOnly:false,dateFmt:'yyyy-MM-dd HH:mm:ss', maxDate:'%y-%M-%d',minDate:'%y-%M-%d'})"
+								title="请输入还款时间" size="30" /></td-->
+							<td class="td-left">还款单号<font color="red">*</font></td>
+							<td class="td-right" colspan="3"><input type="text" name="repaymentOrderNo" id="repaymentOrderNo" placeholder="请输入还款单号" /></td>
+							<td class="td-left">已还金额(元)</td>
+							<td class="td-right"><input type="text" id="yihuan" readonly="readonly"/></td>
+						</tr>
+						<tr>
+							<td class="td-left">还款渠道</td>
+							<td class="td-right" colspan="3">
+								<select class="form-control" id="repaymentType" name="repaymentType">
+									<option value="1">支付宝</option>
+									<option value="2">银行卡对公</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="td-left">备注</td>
+							<td class="td-right" colspan="3">
+								<textarea rows="5" cols="10"
+								id="remark" name="remark" style="width:100%;padding: 6px 14px;"></textarea>
+							</td>
+						</tr>
+						<tr align="center">
+							<td colspan="4">
+								<button type="button" class="btn btn-success"
+									onclick="dosubmit()">保存</button>
+								<button type="button" class="btn btn-default active">放弃</button>
+							</td>
+	
+						</tr>
+					</table>
+				</form>
+			</div>
+		</div>
+
+
+        <div class="message-box animated fadeIn" data-sound="alert" id="renewal">
+            <div class="nav col-md-8 nav-ul" style="left: 18%; top: 16%;">
+                <form action="" id="renewalAmountForm">
+
+                    <!--<input type="hidden" name="renewalOrderId" id="renewalOrderId"/>-->
+                    <table class="openBox"  style="border-bottom:rgba(34,0,0,0.3) solid 1px;text-align: left;border-radius: 0px 0px 0px 0px;">
+                        <tr style="text-align: left">
+                            <td style="text-align: left"> <span style="font-size:20px;margin-left: 25px">  客户信息</span></td>
+                        </tr>
+                    </table>
+                    <table class="openBox" style="border-radius: 0px 0px 0px 0px;">
+                        <tr>
+                            <td class="td-left">续期用户</td>
+                            <td class="td-right">
+                                <input type="text" name="renewalUserName" id="renewalUserName" disabled="true"
+                                       style="background-color: #fbf9ee"/>
+                            </td>
+                            <td class="td-left">订单号</td>
+                            <td class="td-right"><input name="renewalOrderId" id="renewalOrderId" type="text"
+                                                        readonly="readonly" style="background-color: #fbf9ee"/></td>
+
+                        </tr>
+                        <tr>
+                            <td class="td-left">应还款时间</td>
+                            <td class="td-right"><input type="text" name="repaymentTime" id="repaymentTime" readonly="readonly"
+                                                        style="background-color: #fbf9ee"/></td>
+                            <td class="td-left">续期后的应还款时间</td>
+                            <td class="td-right">
+                                <input type="text" name="renewalRepaymentTime" id="renewalRepaymentTime" readonly="readonly"
+                                       style="background-color: #fbf9ee"/>
+                            </td>
+
+                        </tr>
+
+                    </table>
+                    <table class="openBox"  style="border-bottom:rgba(34,0,0,0.3) solid 1px;border-top:rgba(34,0,0,0.3) solid 1px;text-align: left;border-radius: 0px 0px 0px 0px;">
+                        <tr style="text-align: left">
+                            <td style="text-align: left"> <span style="font-size:20px;margin-left: 25px">  续期信息</span></td>
+                        </tr>
+                    </table>
+                    <table class="openBox" style="border-radius: 0px 0px 0px 0px;">
+                        <tr>
+                            <td class="td-left" style="width: 50px">电子回执单号<font color="red">*</font></td>
+                            <td class="td-right" style="width: 100px"><input type="text" name="renewalOrderNo"
+                                                                             id="renewalOrderNo" placeholder="请输入电子回执单号"/></td>
+                            <td class="td-left">续期费用</td>
+                            <td class="td-right"><input type="text" name="penaltyAmount" id="penaltyAmount" readonly="readonly"
+                                                        style="background-color: #fbf9ee"/></td>
+                        </tr>
+                        <tr>
+                            <td class="td-left">续期支付渠道<font color="red">*</font></td>
+                            <td class="td-right">
+                                <select class="form-control" id="renewalType" name="renewalType" value="" onchange="gradeChange()">
+                                    <option value="1">支付宝</option>
+                                    <option value="2">银行卡对公</option>
+                                </select>
+                            </td>
+                            <td class="td-left"  style="display: none" id="ftd">扣款银行</td>
+                            <td class="td-right" colspan="2" style="display: none" id="std">
+                                <select name="renewalBank" id="renewalBank" placeholder="请选则扣款银行" >
+                                    <option value="0"></option>
+                                    <option th:each="bankInfo,iterStat:${bankAllInfo}" th:value="${bankInfo.bankCode}"
+                                            th:text="${bankInfo.bankName}"></option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="td-left">备注</td>
+                            <td class="td-right" colspan="3">
+								<textarea rows="5" cols="10" class="required"
+                                          id="renealComment" name="renealComment"
+                                          style="width:100%;padding: 6px 14px;"></textarea>
+                            </td>
+                        </tr>
+                        <tr align="center">
+                        <tr align="center">
+                            <td colspan="4">
+                                <button type="button" class="btn btn-success success" onclick="doRenewalSubmit()" style="padding-right: 10px;">保存</button>
+                                <button type="button" class="btn btn-default renewalActive"  onclick="$('#renewal').removeClass('show');">关闭</button>
+                            </td>
+                        </tr>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+		<table width="95%" border="0" align="center" cellpadding="0"
+			cellspacing="0">
+			<tr>
+				<td height="33">
+					<table width="100%" border="0" align="center" cellpadding="0"
+						cellspacing="0" class="right-font08">
+						<tr>
+							<td align="left" class="td2"
+								th:if="${not #lists.isEmpty(pageInfo)}"
+								th:text="   ${'共'+pageInfo.total+ '条'}"></td>
+							<td align="right" class="td2" id="pageFooter"></td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+	</div>
+</body>
+<script type="text/javascript" th:src='@{/v2/js/jquery.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/jquery-ui.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/bootstrap.min.js}'></script>
+<script type='text/javascript' th:src='@{/v2/js/icheck.min.js}'></script>
+<script type="text/javascript"
+	th:src="@{/v2/js/jquery.mCustomScrollbar.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/bootstrap-select.js}"></script>
+<script type="text/javascript"
+	th:src="@{/v2/js/jquery.dataTables.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/settings.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/plugins.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/actions.js}"></script>
+<script type="text/javascript"
+	th:src="@{/v2/js/bootstrap-treeview.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/common.js}"></script>
+<script th:src="@{/js/page/create-page.js}" type="text/javascript"></script>
+<script th:src="@{/js/My97DatePicker/WdatePicker.js}"
+	type="text/javascript"></script>
+<script th:inline="javascript">
+        /*<![CDATA[*/
+        	$(function(){
+        		$("#pageFooter").html(createPager([[${pageInfo}]], "formpro"));  
+        		$("#orderStatus").val([[${orderStatus}]]);
+        		$("#export").click(function () {
+                    var exportExcel = document.getElementById("exportExcel");
+                    var href = exportExcel.href;
+                    exportExcel.href = href + '?' + $("#formpro").serialize();
+                    var startDate = $("#startDate").val();
+                    var endDate = $("#endDate").val();
+                    if (startDate == null || startDate == "") {
+                        alert("开始时间不能为空");
+                        return false;
+                    }
+                    if (endDate == null || endDate == "") {
+                        alert("结束时间不能为空");
+                        return false;
+                    }
+                    exportExcel.click();
+                    exportExcel.href = href;
+                });
+
+                $("#queryOperate").click(function(){
+                    /*<![CDATA[*/
+                    var startDate = $("#startDate").val();
+                    var endDate = $("#endDate").val();
+                    if (startDate == null || startDate == "") {
+                        alert("开始时间不能为空");
+                        return false;
+                    }
+                    if (endDate == null || endDate == "") {
+                        alert("结束时间不能为空");
+                        return false;
+                    }
+                    //时间不大于7天
+                    //console.log(startDate+","+endDate);
+                    var d1 = new Date(startDate);
+                    var d2 = new Date(endDate);
+                    //console.log(parseInt(d2 - d1) /1000/60/60/24);//两个时间相差的小时数
+                    var d3=parseInt(d2 - d1) /1000/60/60/24;
+                    if(d3>30){
+                        alert("查询范围不能超过30天");
+                        return false;
+                    }else{
+                        loading();
+                        $("#formpro").submit();
+                    }
+                });
+        	});
+
+        function gradeChange(){
+            var renewalType=  $("#renewalType").val();
+            if(renewalType==2){
+                $("#ftd").show();
+                $("#std").show();
+            }else {
+                $("#ftd").hide();
+                $("#std").hide();
+            }
+        }
+        	function dosubmit() {
+        	    if(!confirm("已确认还款信息无误!")) return;
+        		var repaymentAmounted = $("#repaymentAmounted").val();
+                if (repaymentAmounted == '') {
+                    alertPopup("还款金额不能为空!");
+                    return;
+                }
+
+                if(isNaN(repaymentAmounted)){
+                    alertPopup("还款金额必须是数字!");
+                    return;
+                }
+
+                if(repaymentAmounted<0){
+                    alertPopup("还款金额必须大于等于0!");
+                    return;
+                }
+
+                var repaymentAmount=$("#repaymentAmount").val();
+                if(parseInt(repaymentAmounted)>parseInt(repaymentAmount)){
+                    alertPopup("还款金额不能大于剩余还款金额");
+                    return;
+                }
+                var ceditAmount=$("#ceditAmount").val();
+
+                if(ceditAmount!=''){
+
+                    if(isNaN(ceditAmount)){
+                        alertPopup("减免金额必须是数字!");
+                        return;
+                    }
+
+                    if(ceditAmount<0){
+                        alertPopup("减免金额必须大于等于0!");
+                        return;
+                    }
+
+                    if(parseFloat(ceditAmount)>parseFloat(repaymentAmount)){
+                        alertPopup("减免金额不能大于剩余还款金额");
+                        return;
+                    }
+
+                    if((parseFloat(ceditAmount)+parseFloat(repaymentAmounted))>parseFloat(repaymentAmount)){
+                        alertPopup("减免金额加还款金额不能大于剩余还款金额");
+                        return;
+                    }
+                }
+				var orderNo=$("#repaymentOrderNo").val();
+                if(orderNo == '')
+				{
+				    alertPopup("还款订单号不能为空!");
+				    return;
+				}
+
+                var createdAt = $("#createdAt").val();
+        		if(createdAt == ''){
+        			alertPopup("还款时间不能为空!");
+                    return;
+        		}
+                var state=$('#state').is(':checked')?1:0;
+                var data = {
+                	orderId:$("#orderPayId").val(),
+                	trueRepaymentMoney:repaymentAmounted,
+                    createdAt:createdAt,
+                    ceditAmount:ceditAmount,
+                	repaymentType:$("#repaymentType").val(),
+                	remark:$("#remark").val(),
+                    repaymentOrderNo: $("#repaymentOrderNo").val()
+                }
+                var url=[[@{/assetRepaymentOrder/trueRepaymentMoney}]];
+                $.ajax({
+                    type   : "post",
+                    data   : data,
+                    url    : url,
+                    success: function (resp) {
+                    	alertPopup(resp.message,function(){
+                      	   location.href='/assetRepaymentOrder/pageList?type=6';
+                      	});
+                    }
+                });
+            }
+        	function assetRepaymented(orderId,repaymentAmount,leijiyinghuan,leijijianmian,yihuan){
+        		$("#box").addClass("show");
+        		cleanAll("repaymentAmountForm");
+        		$("#repaymentType").val(1);
+        		$("#orderPayId").val(orderId);
+        		$("#repaymentAmount").val(repaymentAmount);
+                $("#leijiyinghuan").val(leijiyinghuan);
+                $("#leijijianmian").val(leijijianmian);
+                $("#yihuan").val(yihuan);
+        	}
+        	$(".active").click(function(){
+        		$("#box").removeClass("show");
+        	})
+
+        //去续期
+        function assetRenewal(orderId, lateDay,userName,repaymentTime,renewalRepaymentTime,penaltyAmount) {
+            if (Number(lateDay) > 0) {
+                alertPopup("逾期用户不能续期");
+                return;
+            }
+            cleanAll("renewalAmountForm");
+            $("#renewalType").val(11);
+            $("#renewalOrderId").val(orderId);
+            $("#renewalUserName").val(userName);
+            $("#repaymentTime").val(repaymentTime);
+            $("#renewalRepaymentTime").val(renewalRepaymentTime);
+            $("#penaltyAmount").val(penaltyAmount);
+            $("#renewal").addClass("show");
+        }
+        //续期操作
+        function doRenewalSubmit() {
+
+            var renewalOrderNo=$('#renewalOrderNo').val();
+            if (renewalOrderNo == '') {
+                alertPopup("续期支付单号不能为空!");
+                return;
+            }
+            var renewalType = $("#renewalType").val();
+            if (renewalType == '') {
+                alertPopup("续期支付类型不能为空!");
+                return;
+            }
+            var renealComment = $("#renealComment").val();
+            var data = {
+                orderId: $("#renewalOrderId").val(),
+                renewalType: renewalType,
+                renealComment: renealComment,
+                renewalOrderNo : renewalOrderNo,
+                renewalBank:$('#renewalBank').val()
+            }
+            var url = [[@{ /assetRepaymentOrder/trueRenewalMoney}]];
+            $.ajax({
+                type: "post",
+                data: data,
+                url: url,
+                success: function (resp) {
+                    if (resp.code != 200) {
+                        alertPopup(resp.message);
+                    } else {
+                        alertPopup(resp.message, function () {
+                            location.href = '/assetRepaymentOrder/pageList?type=6';
+                        });
+                    }
+                }
+            });
+        }
+        	 /*]]>*/
+        </script>
+</html>

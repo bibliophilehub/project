@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.inext.dao.IAssetRepaymentOrderWithholdDao" >
+  <resultMap id="BaseResultMap" type="com.inext.entity.AssetRepaymentOrderWithhold" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="req_amt" property="reqAmt" jdbcType="DECIMAL" />
+    <result column="pay_bussiness" property="payBussiness" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="charge_status" property="chargeStatus" jdbcType="INTEGER" />
+    <result column="res_amt" property="resAmt" jdbcType="DECIMAL" />
+      <result column="req_num" property="reqNum" jdbcType="INTEGER" />
+      <result column="res_num" property="resNum" jdbcType="INTEGER" />
+      <result column="request_id" property="requestId" jdbcType="VARCHAR" />
+      <result column="batch_id" property="batchId" jdbcType="VARCHAR" />
+      <result column="err_message" property="errMessage" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, req_amt, request_id, pay_bussiness, status, charge_status,
+    req_num,res_num,err_message,
+    batch_id, res_amt, create_time, update_time
+  </sql>
+  <!-- 代扣查询列表 -->
+  <select id="getQueryDKList" resultMap="BaseResultMap" parameterType="com.inext.dto.AssetRepaymentOrderWithholdDto">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+		asset_repayment_order_withhold
+	WHERE
+		`status` = 1
+	ORDER BY id
+  </select>
+  <!-- 代扣统计总和 -->
+  <select id="calculationDKQueryNum" resultType="java.lang.Integer" parameterType="com.inext.entity.AssetRepaymentOrderWithhold">
+    SELECT
+    	COUNT(1)
+    FROM
+		asset_repayment_order_withhold
+	WHERE
+		`status` = 1
+  </select>
+
+  <select id="countDayRepaymentDKNum" resultType="java.lang.Integer" parameterType="com.inext.dto.AssetRepaymentOrderWithholdDto">
+    SELECT
+		COUNT(1)
+	FROM
+		asset_repayment_order_withhold
+	WHERE
+		create_time <![CDATA[ >= ]]> #{beginCreateTime,jdbcType=TIMESTAMP}
+	AND create_time <![CDATA[ <= ]]> #{endCreateTime,jdbcType=TIMESTAMP}
+		<if test="payBussiness != null" >
+        	and pay_bussiness = #{payBussiness,jdbcType=INTEGER}
+      	</if>
+  </select>
+
+  <select id="countTotalRepaymentDKNum" resultType="java.lang.Integer" parameterType="com.inext.dto.AssetRepaymentOrderWithholdDto">
+    SELECT
+		COUNT(1)
+	FROM
+		asset_repayment_order_withhold
+  </select>
+
+    <insert id="insertOrderWithhold" parameterType="com.inext.entity.AssetRepaymentOrderWithhold" keyProperty="id" useGeneratedKeys="true">
+        insert into asset_repayment_order_withhold
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="requestId != null and requestId !=''">
+                request_id,
+            </if>
+            <if test="batchId != null and batchId !=''">
+                batch_id,
+            </if>
+            <if test="chargeStatus != null">
+                charge_status,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="payBussiness != null">
+                pay_bussiness,
+            </if>
+            <if test="reqAmt != null">
+                req_amt,
+            </if>
+            <if test="resAmt != null">
+                res_amt,
+            </if>
+            <if test="reqNum != null">
+                req_num,
+            </if>
+            <if test="resNum != null">
+                res_num,
+            </if>
+            <if test="errMessage != null">
+                err_message,
+            </if>
+
+            <if test="updateTime != null">
+                update_time,
+            </if>
+
+            <if test="createTime != null ">
+                create_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="requestId != null and requestId !=''">
+                #{requestId,jdbcType=VARCHAR},
+            </if>
+            <if test="batchId != null and batchId !=''">
+                #{batchId,jdbcType=VARCHAR},
+            </if>
+            <if test="chargeStatus != null">
+                #{chargeStatus,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="payBussiness != null">
+                #{payBussiness,jdbcType=INTEGER},
+            </if>
+            <if test="reqAmt != null">
+                #{reqAmt,jdbcType=DECIMAL},
+            </if>
+            <if test="resAmt != null">
+                #{resAmt,jdbcType=DECIMAL},
+            </if>
+            <if test="reqNum != null">
+                #{reqNum,jdbcType=INTEGER},
+            </if>
+            <if test="resNum != null">
+                #{resNum,jdbcType=INTEGER},
+            </if>
+            <if test="errMessage != null">
+                #{errMessage,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null ">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createTime != null ">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectWithholdByOther" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM
+        asset_repayment_order_withhold
+        WHERE 1=1
+        <if test="id != null">
+            and id=#{id}
+        </if>
+        <if test="requestId != null and requestId != ''">
+            and request_id=#{requestId}
+        </if>
+    </select>
+
+    <update id="updateWithhold" >
+        update
+        asset_repayment_order_withhold
+        <trim prefix="set" suffixOverrides=",">
+            <if test="batchId">
+                batch_id = #{batchId},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="errMessage != null">
+                err_message = #{errMessage},
+            </if>
+            <if test="chargeStatus != null">
+                charge_status = #{chargeStatus},
+            </if>
+        </trim>
+        WHERE
+        id = #{id}
+    </update>
+    <select id="getWithholdByStatus" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM
+        asset_repayment_order_withhold
+        WHERE 1=1
+        <if test="chargeStatus != null">
+            and charge_status=#{chargeStatus}
+        </if>
+    </select>
+
+</mapper>

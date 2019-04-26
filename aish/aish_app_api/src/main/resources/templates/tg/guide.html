@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="UTF-8"/>
+	<title>花小侠</title>
+	<meta http-equiv="Expires" content="-1"/>
+	<meta http-equiv="Pragma" content="no-cache"/>
+	<meta http-equiv="Cache-Control" content="no-cache"/>
+	<meta name="format-detection" content="telephone=no"/>
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+	<link rel="stylesheet" type="text/css" th:href="@{/css/guide/guide.css}" />
+	<script type="text/javascript">
+        var ohtml = document.documentElement;
+        getSize();
+
+        window.onresize = function(){
+            getSize();
+        }
+        function getSize(){
+            var screenWidth = ohtml.clientWidth;
+			ohtml.style.fontSize = screenWidth/(750/40)+'px';
+        }
+	</script>
+</head>
+<body style="background: #fff;">
+<div class="page">
+   <img th:src="@{../images/guide/b-01.png}" alt=""/>
+
+   <a href="itms-services://?action=download-manifest&amp;url=https://ash.flower369.com/download/ios/app/manifest.plist" class="btn">点击安装</a>
+   <div class="install-alert">点击安装后请返回桌面查看</div>
+   <img th:src="@{../images/guide/b-03.png}" alt=""/>
+   <img th:src="@{../images/guide/b-04.png}" alt=""/>
+   <img th:src="@{../images/guide/b-05.png}" alt=""/>
+</div>
+
+</body>
+</html>

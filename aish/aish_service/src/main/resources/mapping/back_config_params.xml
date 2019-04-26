@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.inext.dao.IBackConfigParamsDao" >
+  <resultMap id="BaseResultMap" type="com.inext.entity.BackConfigParams" >
+    <id column="id" property="id" />
+    <result column="sys_name" property="sysName"/>
+    <result column="sys_value" property="sysValue"/>
+    <result column="sys_key" property="sysKey"/>
+    <result column="sys_type" property="sysType"/>
+    <result column="input_type" property="inputType" />
+    <result column="remark" property="remark"/>
+    <result column="limit_code" property="limitCode"/>
+    <result column="sys_value_big" property="sysValueBig"/>
+  </resultMap>
+    
+  <select id="findParams" resultMap="BaseResultMap" parameterType="HashMap" >
+    select  *  from back_config_params  
+    	<where>
+    		<if test="sysType != null and sysType != ''">
+    			and  sys_type = #{sysType}
+    		</if>
+    		<if test="sysName != null and sysName != ''">
+    			 and sys_name = #{sysName}
+    		</if>
+    		<if test="sysKey != null and sysKey != ''">
+    			 and sys_key = #{sysKey}
+    		</if>
+    	</where>
+      order by sys_type,id asc
+  </select>
+  <select id="findParamsBySyskeys" resultMap="BaseResultMap" parameterType="HashMap" >
+    select  *  from back_config_params
+	  where sys_key in
+	  <foreach item="item" index="index" collection="sysKeys" open="(" separator="," close=")">
+		  '${item}'
+	  </foreach>
+      order by sys_type,id asc
+  </select>
+   <update id="updateValue"  parameterType="java.util.List">
+	    <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update back_config_params
+			<set>
+				<if test="item.sysValue != null and item.sysValue != ''">
+				  sys_value = #{item.sysValue}, 
+				</if>
+				<if test="item.sysValueBig != null and item.sysValueBig != ''">
+				  sys_value_big = #{item.sysValueBig}, 
+				</if>
+			</set>
+			 where id = #{item.id}
+		</foreach>
+  </update>
+	<select id="findById" resultMap="BaseResultMap">
+		SELECT * FROM back_config_params WHERE id = #{id}
+	</select>
+</mapper>

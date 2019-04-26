@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.inext.dao.IAssetRenewalOrderDao">
+	<select id="getPageList" parameterType="java.util.Map" resultType="com.inext.entity.AssetRenewalOrder">
+		SELECT
+			aro.id,aro.user_id,aro.user_phone,aro.user_name,aro.order_id,aro.money_amount,aro.penalty_amount,aro.money_day,aro.credit_repayment_time,aro.renewal_time,aro.renewal_day,aro.repayment_time,aro.renewal_type,aro.reneal_comment,
+            if(u.channelId=0,'自然流量',if(chi.channel_name is not null,chi.channel_name,'未知')) channel_name,
+            abo.payment_channel,
+		IF(ri.order_id is not null,ri.order_id,IF(hc.order_id is not null,hc.order_id,ard.repayment_order_no))orderno ,
+		IF(ri.update_time is not null,ri.update_time,IF(hc.update_time is not null,hc.update_time,ard.created_at))paymentTime ,
+		IF(ri.order_id is not null, '宝付',IF(hc.order_id is not null, '汇潮','后台手工'))repaymentChannel
+        from
+            asset_renewal_order aro
+        left join asset_borrow_order abo on abo.id = aro.order_id
+		inner join borrow_user u on aro.user_id=u.id
+		left join channel_info chi on u.channelId=chi.id
+		left join repayment_info ri on aro.order_id = ri.asset_id and ri.type = 2 and ri.is_suc = 1 <![CDATA[ AND ABS(TIMESTAMPDIFF(MINUTE,aro.renewal_time, ri.update_time)) < 1 ]]>
+		left join hc_repayment_info hc on hc.asset_id = aro.order_id and hc.type = 2 and hc.is_suc = 1 <![CDATA[ AND ABS(TIMESTAMPDIFF(MINUTE,aro.renewal_time, hc.update_time)) < 1]]>
+		left join asset_repayment_detail ard on ard.renewal_id = aro.id and ard.type = 2
+		where 1=1
+		<if test="channelId != null and channelId != -1 ">
+            and u.channelId = #{channelId}
+        </if>
+		<if test="orderId != null and orderId !=''">
+            and aro.order_id = #{orderId}
+        </if>
+        <if test="userPhone != null and userPhone !=''">
+            and aro.user_phone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and aro.user_name = #{userName}
+        </if>
+        <if test="startDate != null and startDate != ''">
+			and aro.renewal_time >= #{startDate}
+		</if>
+        <if test="paymentChannel != null and paymentChannel != ''">
+			and abo.payment_channel = #{paymentChannel}
+		</if>
+		<if test="endDate != null and endDate != ''">
+	        <![CDATA[and aro.renewal_time <= CONCAT(#{endDate},' 23:59:59')]]>
+		</if>
+		<if test="orderNo != null and orderNo != ''">
+			and ri.order_id = #{orderNo}
+		</if>
+		GROUP BY ri.order_id,hc.order_id,ard.renewal_id
+	</select>
+	<select id="getList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+				aro.id,aro.user_id,aro.user_name,aro.order_id,aro.money_amount,aro.penalty_amount,aro.money_day,aro.credit_repayment_time,aro.renewal_time,aro.renewal_day,aro.repayment_time,aro.renewal_type,aro.reneal_comment,
+				if(u.channelId=0,'自然流量',if(chi.channel_name is not null,chi.channel_name,'未知')) channel_name,
+		IF(ri.order_id is not null,ri.order_id,IF(hc.order_id is not null,hc.order_id,ard.repayment_order_no))orderno ,
+		IF(ri.update_time is not null,ri.update_time,IF(hc.update_time is not null,hc.update_time,ard.created_at))paymentTime ,
+				insert(aro.user_phone,4,4, '****') user_phone,
+		IF(ri.order_id is not null, '宝付',IF(hc.order_id is not null, '汇潮','后台手工'))repaymentChannel
+		from
+		        asset_renewal_order aro
+		inner join borrow_user u on aro.user_id=u.id
+		left join channel_info chi on u.channelId=chi.id
+		left join repayment_info ri on aro.order_id = ri.asset_id and ri.type = 2 and ri.is_suc = 1 <![CDATA[ AND ABS(TIMESTAMPDIFF(MINUTE,aro.renewal_time, ri.update_time)) < 1 ]]>
+		left join hc_repayment_info hc on hc.asset_id = aro.order_id and hc.type = 2 and hc.is_suc = 1 <![CDATA[ AND ABS(TIMESTAMPDIFF(MINUTE, hc.update_time,aro.renewal_time)) < 1 ]]>
+		left join asset_repayment_detail ard on ard.renewal_id = aro.id and ard.type = 2
+		where 1=1
+		<if test="channelId != null and channelId != -1 ">
+            and u.channelId = #{channelId}
+        </if>
+		<if test="orderId != null and orderId !=''">
+            and aro.order_id = #{orderId}
+        </if>
+        <if test="userPhone != null and userPhone !=''">
+            and aro.user_phone = #{userPhone}
+        </if>
+        <if test="userName != null and userName !=''">
+            and aro.user_name = #{userName}
+        </if>
+        <if test="startDate != null and startDate != ''">
+			and aro.renewal_time >= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+	        <![CDATA[and aro.renewal_time <= CONCAT(#{endDate},' 23:59:59')]]>
+		</if>
+		GROUP BY ri.order_id,hc.order_id,ard.renewal_id
+	</select>
+
+	<!--查询订单续期次数-->
+	<select id="getCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT IFNULL(COUNT(1), 0) FROM asset_renewal_order WHERE order_id = #{orderId};
+	</select>
+
+</mapper>

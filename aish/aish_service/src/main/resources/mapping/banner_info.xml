@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IBannerInfoDao">
+	<resultMap id="BaseResultMap" type="com.inext.entity.BannerInfo">
+        <id column="id" property="id"/>
+        <result column="url" property="url" jdbcType="VARCHAR"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="reurl" property="reurl" jdbcType="VARCHAR"/>
+        <result column="sort" property="sort" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <select id="getBannerList" resultMap="BaseResultMap" parameterType="Map">
+        SELECT
+	       *
+        FROM
+       		 banner_info 
+        <where>
+        <if test="status != null and status !=''">
+            status=#{status}
+        </if>
+        </where>
+		order by sort
+    </select>
+    <select id="getBannerById" parameterType="Integer" resultType="com.inext.entity.BannerInfo">
+        SELECT
+	        id,
+			url,
+			title,
+			reurl,
+			sort,
+			status,
+	        create_time as createTime
+        FROM
+       		 banner_info 
+        WHERE
+		     id = #{id}
+    </select>
+    <!-- 添加角色 -->
+    <insert id="saveBanner" parameterType="com.inext.entity.BannerInfo" keyProperty="id" useGeneratedKeys="true">
+        insert into banner_info(url,title,reurl,sort,status,create_time)
+        values (#{url},#{title},#{reurl},#{sort},#{status},#{createTime})
+    </insert>
+    <update id="updateBanner" parameterType="com.inext.entity.BannerInfo" >
+         update banner_info set
+	         url= #{url},
+	         title= #{title},
+	         reurl= #{reurl},
+	         sort= #{sort},
+	         status= #{status}
+         where id=#{id}
+    </update>
+    
+
+
+</mapper>

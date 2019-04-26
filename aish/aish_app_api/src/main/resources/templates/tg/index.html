@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8"/>
+    <title>下款神器</title>
+    <meta name="x5-fullscreen" content="true"/>
+    <meta name="full-screen" content="yes"/>
+    <meta http-equiv="Expires" content="-1"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Cache-Control" content="no-cache"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+
+    <script type="text/javascript">
+        document.documentElement.style.fontSize = 100 * innerWidth / 750 + 'px';
+        addEventListener('load', function() {
+            setTimeout(function(){
+                document.documentElement.style.fontSize = 100 * innerWidth / 750 + 'px';
+            }, 480);
+            var isInApp = (window.self != window.top);
+            if (!isInApp) {
+                window.parent.postMessage({name: 'web:inject', token: Math.random().toString(), usertype: 1}, '*');
+            }
+        });
+    </script>
+
+    <style>
+        *{
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+        html,body{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            background: #F64A6B;
+            width: 100%;
+            height: 100%;
+        }
+        input{
+            margin:0;
+            padding:0;
+            line-height:0;
+            outline: none;
+        }
+        button{
+            margin:0;
+            padding:0;
+        }
+        .clearfix {
+            zoom: 1;
+        }
+
+        .clearfix:after {
+            display: block;
+            visibility: hidden;
+            overflow: hidden;
+            clear: both;
+            height: 0;
+            content: ".";
+        }
+        .channel-wrap{
+            position:relative;
+            width: 100%;
+            height:13.34rem;
+            background:url("../images/tg/hxxLoginViewBg.png") no-repeat;
+            background-size: 100% 100%;
+        }
+        .channel-form{
+            position:absolute;
+            top: 7.06rem;
+            left: 50%;
+            margin-left: -2.8rem;
+            width: 5.6rem;
+            line-height:0;
+        }
+        .channel-form-item{
+            position:relative;
+            width:5.6rem;
+            height:0.8rem;
+            margin-bottom: 0.4rem;
+            border: 0.02rem solid #8D015D;
+            background: #ffffff;
+            border-radius:0.1rem;
+        }
+        .channel-form-item:last-child{
+            margin-bottom:0;
+        }
+        .channel-form-item>input{
+            box-sizing:border-box;
+            width:5.6rem;
+            height: 0.8rem;
+            line-height:0.80rem;
+            padding-left:0.7rem;
+            font-size:0.28rem;
+            border-radius:0.1rem;
+            border:none;
+            background: 0;
+        }
+        .channel-form-item>button{
+            border:none;
+        }
+        .channel-form-item>input.short-input{
+            width:3rem;
+            float:left;
+        }
+        .channel-form-action{
+            margin-top:0.54rem;
+        }
+        .getPhoneCode{
+            float:right;
+            font-size:0.28rem;
+            font-family:PingFangSC-Regular;
+            color:rgba(255,52,15,1);
+            margin-top:0.1rem;
+            padding: 0 0.32rem;
+            border-left:1px solid #979797;
+            background:none;
+            position:relative;
+            z-index:999;
+            height: 0.6rem;
+            line-height: 0.6rem;
+        }
+        .register-button{
+            position: relative;
+            left: 0;
+            width:5.62rem;
+            height:1.22rem;
+            border:none;
+            background: url("../images/tg/hxxGetBtn.png") no-repeat;
+            background-size: cover;
+        }
+        .icon{
+            display:inline-block;
+            position:absolute;
+            left:0.23rem;
+        }
+        .icon-phone{
+            width:0.28rem;
+            height:0.42rem;
+            background:url("../images/tg/aishPhoneIcon.png") no-repeat;
+            background-size: cover;
+            top:0.2rem;
+        }
+        .icon-smscode{
+            width:0.36rem;
+            height:0.30rem;
+            background:url("../images/tg/aishCodeIcon.png") no-repeat;
+            background-size: cover;
+            top:0.24rem;
+        }
+        .androidShadow{
+            position: fixed;
+            top:0;
+            left:0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999999;
+        }
+        .androidShadow i{
+            position: absolute;
+            right: -0.1rem;
+            top: -0.44rem;
+            display: block;
+            height: 2rem;
+            width: 2rem;
+            background: url("/images/tg/arrowRight.png") no-repeat center;
+            background-size: 40% 40%;
+        }
+        .androidShadow p{
+            font-size: 0.28rem;
+            color: #ffffff;
+            text-align: right;
+            padding-right: 0.3rem;
+            margin-top: 1rem;
+        }
+        .guideShadow{
+            position: fixed;
+            bottom:0;
+            left:0;
+            width: 100%;
+            height: 12.01rem;
+            background: url("/images/tg/hxxGuildBg1.png") no-repeat center;
+            background-size: 100% 100%;
+            z-index: 9999;
+        }
+        .guideShadow .confirmBtn{
+            position: absolute;
+            left: 50%;
+            margin-left: -2.1rem;
+            bottom: 0.88rem;
+            width: 4.2rem;
+            height: 0.76rem;
+            border: 0.02rem solid #F74D0A;
+            border-radius: 0.1rem;
+            font-size: 0.28rem;
+            color: #F74D0A;
+            background: none;
+            text-align: center;
+            line-height: 0.76rem;
+            text-decoration: none;
+        }
+        .iosShadow{
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin: -1rem 0 0 -2.5rem;
+            width: 5rem;
+            height: 2rem;
+            background: rgba(0,0,0,0.7);
+            border-radius: 0.2rem;
+            font-size: 0.28rem;
+            color: #ffffff;
+            padding: 0.4rem 0.2rem 0.2rem;
+            z-index: 999999;
+            box-sizing: border-box;
+        }
+    </style>
+
+</head>
+<body>
+<div class="channel-wrap">
+    <form action="" class="channel-form">
+        <div class="channel-form-item">
+            <i class="icon icon-phone"></i>
+            <input type="text" name="userPhone" placeholder="请输入手机号码" id="userPhone"/>
+        </div>
+        <!--<div class="channel-form-item clearfix">
+            <i class="icon icon-imgcode"></i>
+            <input type="text" name="captcha" placeholder="请输入图片验证码" id="captcha" class="short-input"/>
+            <a href="javascript:void(0)" onclick="$('#validatePic').attr('src', '${config.contextPath}/authCode?time=' + new Date().getTime());" title="点击刷新">
+                <img class="captcha" th:src="@{/captcha.svl}"
+                     th:onclick="@{this.src = '/captcha.svl?d=' + new Date() * 1 }" alt="点击更新" title="点击更新"/>
+            </a>
+        </div>-->
+        <div class="channel-form-item clearfix">
+            <i class="icon icon-smscode"></i>
+            <input type="text" name="smsCode" placeholder="请输入短信验证码" id="smsCode" class="short-input"/>
+            <p class="getPhoneCode" canClick="1">获取验证码</p>
+        </div>
+        <!--<div class="channel-form-item">
+            <i class="icon icon-pwd"></i>
+            <input type="password" name="password" placeholder="设置6-16位数字加字母密码" id="password"/>
+        </div>-->
+        <div class="channel-form-action">
+            <button type="button" class="register-button" id="register-btn"></button>
+        </div>
+        <input type="hidden" name="channelCode" th:value="${channelCode}"/>
+    </form>
+
+    <!-- 获取安卓iOS链接地址 -->
+    <!--<input type="hidden" name="channelCode" th:value="${iosUrl}" id="getIosVal"/>-->
+    <input type="hidden" name="channelCode" th:value="${androidUrl}" id="getAndroidVal"/>
+</div>
+
+<!-- 安卓微信打开时，遮罩层提示 -->
+<div class="androidShadow" style="display: none;">
+    <div class="contentView">
+        <i></i>
+        <p>请使用浏览器打开哦！</p>
+    </div>
+</div>
+
+<!-- ios非Safari打开时，遮罩层提示 -->
+<div class="iosShadow" style="display: none;">如若安装失败，请用其他浏览器进行下载</div>
+
+<!-- 如果是iOS，点击下载安装，弹出指示弹层 -->
+<div class="guideShadow" style="display: none;">
+    <a th:href="'itms-services://?action=download-manifest&amp;url='+${iosUrl}" class="confirmBtn">我知道了</a>
+</div>
+
+<script type="text/javascript" th:src ="@{/js/jquery-1.9.1.min.js}"></script>
+<script type="text/javascript" th:src ="@{/js/tg/lightBox.js}"></script>
+<script type="text/javascript" th:src ="@{/js/md5.js}"></script>
+<script type="text/javascript">
+    $(function(){
+        //当键盘退出时，强行页面置顶
+        $("input").blur(function(){
+            window.scrollTo(0,0);
+        });
+
+        // 获取验证码
+        $(".getPhoneCode").click(function() {
+            var numVal = $("#userPhone").val();
+            if(/^[1][3,4,5,6,7,8][0-9]{9}$/.test(numVal)) {
+                $(this).addClass("active");
+                var getCanClick = $(this).attr("canClick");
+                if(getCanClick == 1) {
+                    $(".getPhoneCode").attr("canClick", 0);
+                    $.ajax({
+                        type: "POST",
+                        url: "/sms/getSmsCodeCaptcha",
+                        data: {
+                            userPhone: $("#userPhone").val(),
+                            captcha: $("#captcha").val(),
+                            smsToken: getSmstoken($("#userPhone").val())
+                        },
+                        success: function(result) {
+                            result = JSON.parse(result);
+                            if(result.code==0) {
+                                var countdown = 60;
+                                settime();
+                                function settime() {
+                                    //开始判断倒计时是否为0
+                                    if(countdown == 0) {
+                                        $(".getPhoneCode").html("获取验证码");
+                                        $(".getPhoneCode").removeClass("active");
+                                        $(".getPhoneCode").attr("canClick", 1);
+                                        countdown = 60;
+                                        return;
+                                    } else {
+                                        $(".getPhoneCode").html("重新发送" + countdown);
+                                        countdown--;
+                                    }
+                                    setTimeout(function() { settime() }, 1000)
+                                }
+                            }else if(result.message=="该手机号已注册") {
+                                $.MsgBox.Alert("", "您已注册，请下载APP", function() {
+                                    //window.location.href="/app_sys/down_new_version";
+
+                                    /* 判断是否是iOS或者Android */
+                                    var u = navigator.userAgent, app = navigator.appVersion;
+                                    var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                                    var isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                                    var wx = (function () {
+                                            return navigator.userAgent.toLowerCase().indexOf('micromessenger') !== -1
+                                        }
+                                    )();
+
+                                    //这个是安卓操作系统
+                                    if (isAndroid) {
+                                        //判断是否是微信内部打开
+                                        if (wx) {
+                                            $(".androidShadow").show();
+                                            $(".androidShadow").click(function(){
+                                                $(this).hide();
+                                            });
+
+                                        } else {
+                                            window.location.href = $("#getAndroidVal").val();
+                                        }
+                                    }
+
+                                    //这个是ios操作系统
+                                    if (isIOS) {
+
+                                        $(".guideShadow").show();
+
+                                        $(".confirmBtn").click(function(){
+                                            // $(this).attr('href','itms-services://?action=download-manifest&amp;url=http://dev-img.hxx368.com/download/ios/app/huaxiaoxia.plist');
+
+                                            if (!wx) {
+                                                $('.iosShadow').show ().delay (3000).fadeOut ();
+                                            }
+                                        });
+
+                                    }
+                                });
+                            }else {
+                                $.MsgBox.Alert("", result.message, function() {
+                                    $(".getPhoneCode").removeClass("active");
+                                    $(".getPhoneCode").attr("canClick", 1);
+                                });
+                            }
+
+                        },
+                        error: function(error) {
+                            $(".getPhoneCode").removeClass("active");
+                            $(".getPhoneCode").attr("canClick", 1);
+                            $.MsgBox.Alert("", "系统异常", function() {});
+                        }
+                    })
+                }
+            } else{
+                $.MsgBox.Alert("", "请输入正确的手机号码", function() {});
+            }
+        });
+        $("#register-btn").click(function() {
+            var reg = /^1[3|4|5|7|8][0-9]\d{4,8}$/i;
+            var reg2 = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,16}$/;
+            var userPhoneNum = $("#userPhone").val();
+            var userPassword = $("#password").val();
+            // var imgVcode = $("#captcha").val();
+            var phoneYanzheng = $("#smsCode").val();
+            if(userPhoneNum==""){
+                $.MsgBox.Alert("", "请输入手机号码", function() {});
+            }/*else if(imgVcode==""){
+                $.MsgBox.Alert("", "请输入图片验证码", function() {});
+            }*/else if(phoneYanzheng==""){
+                $.MsgBox.Alert("", "请输入短信验证码", function() {});
+            }
+            /*
+            else if(userPassword==""){
+                $.MsgBox.Alert("", "请输入用户密码", function() {});
+            }*/
+            else{
+                $.ajax({
+                    url: '/borrowUser/tgRedister',
+                    method: 'post',
+                    dataType: 'json',
+                    data: $(".channel-form").serialize(),
+                    beforeSend: function() {},
+                    success: function(data) {
+                        if(data.code==0) {
+                            $.MsgBox.Alert("温馨提示", "恭喜您，已注册成功！", function() {
+                                //跳转页面
+                                //window.location.href="/app_sys/down_new_version";
+
+                                /* 判断是否是iOS或者Android */
+                                var u = navigator.userAgent, app = navigator.appVersion;
+                                var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                                var isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                                var wx = (function () {
+                                        return navigator.userAgent.toLowerCase().indexOf('micromessenger') !== -1
+                                    }
+                                )();
+
+                                //这个是安卓操作系统
+                                if (isAndroid) {
+                                    //判断是否是微信内部打开
+                                    if (wx) {
+                                        $(".androidShadow").show();
+                                        $(".androidShadow").click(function(){
+                                            $(this).hide();
+                                        });
+
+                                    } else {
+                                        window.location.href = $("#getAndroidVal").val();
+                                    }
+                                }
+
+                                //这个是ios操作系统
+                                if (isIOS) {
+
+                                    $(".guideShadow").show();
+
+                                    $(".confirmBtn").click(function(){
+                                        //$(this).attr('href','itms-services://?action=download-manifest&amp;url=http://dev-img.hxx368.com/download/ios/app/huaxiaoxia.plist');
+
+                                        if (!wx) {
+                                            $('.iosShadow').show ().delay (3000).fadeOut ();
+                                        }
+                                    });
+
+                                }
+
+                            });
+                        }else {
+                            $.MsgBox.Alert("温馨提示", data.message, function() {});
+                            $('#validatePic').attr('src', '${config.contextPath}/authCode?time=' + new Date().getTime());
+                        }
+                    },
+                    error: function(error) {
+                        $.MsgBox.Alert("温馨提示", error, function() {});
+                    }
+                });
+            }
+        });
+        function getSmstoken(userPhone) {
+            // var base = new Base64();
+            // var encypass = base.encode(password);
+            return hex_md5(userPhone+"as@*gx1.6kj");
+        }
+    })
+</script>
+</body>
+</html>

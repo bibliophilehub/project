@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oxm="http://www.springframework.org/schema/oxm"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-4.3.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+	
+		<bean id="sealWebServiceTemplate" parent="parentTemplateSt2">
+			  <property name="marshaller">
+					<oxm:jibx-marshaller
+						target-class="com.bill99.schema.ddp.product.MerchantDebitPkiRequest" />
+				</property>
+				<property name="unmarshaller">
+					<oxm:jibx-marshaller
+						target-class="com.bill99.schema.ddp.product.MerchantDebitPkiResponse" />
+				</property>
+		</bean>
+
+	<bean id="parentTemplateSt2" class="org.springframework.ws.client.core.WebServiceTemplate">
+		<constructor-arg>
+			<bean class="org.springframework.ws.soap.axiom.AxiomSoapMessageFactory">
+				<property name="payloadCaching" value="false" />
+			</bean>
+		</constructor-arg>
+		<property name="defaultUri"
+			value="https://www.99bill.com:443/ddpproduct/services" />
+	</bean>
+
+	<bean id="bill99DDPRealTimeService" class="com.inext.service.kq.webservice.impl.Bill99DDPRealTimeService">
+		<property name="sealWebServiceTemplate" ref="sealWebServiceTemplate"/>
+	</bean>
+</beans>

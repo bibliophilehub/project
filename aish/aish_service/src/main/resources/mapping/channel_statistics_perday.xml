@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IChannelStatisticsPerdayDao" >
+    <insert id="addChannelDataPerDay" useGeneratedKeys="true" parameterType="java.util.List">  
+	    <selectKey resultType="long" keyProperty="id" order="AFTER">  
+	        SELECT  
+	        LAST_INSERT_ID()  
+	    </selectKey>  
+	    insert into channel_statistics_perday (
+	    	channel_id,
+	    	pv_count,
+	    	uv_count,
+	    	statistics_date
+	    ) values  
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	        (
+	        #{item.channelId},
+	        #{item.pvCount},
+	        #{item.uvCount},
+	        #{item.statisticsDate}
+	        )
+	    </foreach>  
+	</insert>
+	
+	<delete id="deleteOldData" parameterType="map" >
+	     delete from channel_statistics_perday 
+	     where DATE_FORMAT(statistics_date, '%Y-%m-%d') =DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d')
+	</delete>
+</mapper>

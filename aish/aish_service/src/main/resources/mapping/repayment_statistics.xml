@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IRepaymentStatisticsDao">
+    <select id="getRepaymentStatistics" resultType="map" parameterType="Map">
+       select repayment.* from
+        (
+        select CONCAT(ROUND((viw.overdueTotalNumber-viw.overdueRepaymentNumber)/viw.loanSuccessNumber*100, 2), '%') as dayOverdueRate7,  -- 7日逾期率
+
+        CASE WHEN ADDDATE(DATE_FORMAT(viw.loanDate, '%Y-%m-%d'),6) >= DATE_FORMAT(now(),  '%Y-%m-%d')
+        THEN
+        CONCAT(ROUND((viw.renewalNumber+viw.onTimeRepaymentNumber)/viw.loanSuccessNumber*100, 2), '%')
+        ELSE
+        CONCAT(100-ROUND((viw.overdueTotalNumber-viw.overdueRepaymentNumber)/viw.loanSuccessNumber*100, 2), '%')
+        END  as repaymentIncludesRenewalRate,  -- 当前回款率(含续期)
+
+        ROUND((viw.new_no_rep_historyRenewal + viw.new_rep_history) / viw.is_app_new*100, 2) as new_rep_historyRenewalRate ,   -- 首借回款率
+
+        ROUND((viw.old_no_rep_historyRenewal + viw.old_rep_history) / viw.is_app_old*100, 2) as old_rep_historyRenewalRate,    -- 复借回款率
+        CONCAT(ROUND(viw.repaymented_amount_sum / viw.money_amount_sum * 100,2 ),'%') as repaymentRate,	-- 回款率(不含续期)
+        viw.*
+        from (
+        select
+        sum(re.`repaymented_amount`) as repaymented_amount_sum,	-- 已还金额
+        sum(re.money_amount) as money_amount_sum, 	-- 放款金额
+        sum(re.repayment_amount) as repayment_sum,	-- 应还金额
+        re.`user_id` as user_id,
+
+        re.apply_new as apply_new,
+            
+        re.channelName as channelName,
+
+        COUNT(re.apply_new = 0 or null) as is_app_new,  -- 首借
+
+        COUNT(re.apply_new = 1 or null) as is_app_old,  -- 复借
+      	<![CDATA[
+        COUNT((re.order_renewal = 9 and re.`order_status` = 6 and re.apply_new = 0) or null) as new_no_rep_historyRenewal,  -- 首借续期未还单数
+
+        COUNT((re.order_renewal = 9 and re.`order_status` = 6 and re.apply_new = 1) or null) as old_no_rep_historyRenewal,  -- 复借续期未还单数
+
+        COUNT((re.`order_status` = 8 and re.apply_new = 0) or null) as new_rep_history,  -- 首借已还单数
+
+        COUNT((re.`order_status` = 8 and re.apply_new = 1) or null) as old_rep_history,  -- 复借已还单数
+
+        DATE_FORMAT(re.credit_repayment_time, '%Y-%m-%d') as loanDate,   -- 放款时间
+
+        COUNT((re.order_renewal = 9 and re.`order_status` = 8) or null) as historyRenewal,  -- 历史续期到期单数
+
+        COUNT((re.order_renewal = 9)  or null) as renewalNumber,  -- 续期单数
+
+        ADDDATE(DATE_FORMAT(re.credit_repayment_time, '%Y-%m-%d'),6) as repaymentDate,   -- 还款时间
+
+        COUNT(re.money_amount) as loanSuccessNumber,   -- 放款总单数
+
+        COUNT(DATE_FORMAT(re.repayment_time,'%Y-%m-%d 23:59:59') >= DATE_FORMAT(re.repayment_real_time,'%Y-%m-%d %H:%i:59' ) or null) as onTimeRepaymentNumber, -- 按时还款单数
+
+        COUNT(DATE_FORMAT(re.repayment_time,'%Y-%m-%d 23:59:59')< DATE_FORMAT(re.repayment_real_time,'%Y-%m-%d %H:%i:59' ) or null) +
+
+        COUNT(re.order_status = 7 or null) as overdueTotalNumber, -- 逾期总单数,
+
+        COUNT(DATE_FORMAT(re.repayment_time,'%Y-%m-%d 23:59:59')< DATE_FORMAT(re.repayment_real_time,'%Y-%m-%d %H:%i:59' ) or null) as overdueRepaymentNumber, -- 逾期已还单数,
+
+        COUNT(re.`repayment_real_time` is null or null) as waitRepaymentNumber, -- 待还单数,
+
+        CONCAT(ROUND(COUNT((re.`late_day` > 0 and re.order_renewal is null)  or null)/COUNT(re.money_amount)*100,2), '%') as overdueRate  -- 首逾期率
+      	]]>
+        from
+        (select re_order.*, b_order.`apply_new`, buch.channelName  from asset_repayment_order re_order, `asset_borrow_order`  b_order, 
+         (select ch.`channel_name` as channelName , ch.id as channelId, bu.id as user_id 
+       <if test="channelId != null and channelId != -1">
+       		from `borrow_user` bu , `channel_info` ch where bu.`channelId` = ch.`id` 
+       		and ch.`id` = #{channelId}
+       </if>
+       <if test="channelId == null or channelId == -1">
+       		from `borrow_user` bu left join `channel_info` ch on bu.`channelId` = ch.`id` 
+       </if>
+          ) buch
+         where b_order.`id` = re_order.`order_id` and b_order.user_id = re_order.`user_id`  and  re_order.`user_id` = buch.user_id ) re
+        where
+        re.credit_repayment_time is not null
+        group by
+        DATE_FORMAT(re.credit_repayment_time, '%Y-%m-%d')
+        ) viw
+        ) repayment
+        where 1=1
+        <if test="repaymentDate != null and repaymentDate != ''">
+            and DATE_FORMAT(repayment.repaymentDate, '%Y-%m-%d') = #{repaymentDate}
+        </if>
+        GROUP BY repayment.loanDate
+        ORDER BY DATE_FORMAT(repayment.loanDate, '%Y-%m-%d') desc
+
+
+
+    </select>
+
+    <select id="queryStatic" resultType="com.inext.entity.AssetRepaymentOrder" parameterType="Map">
+    
+       select DATE_FORMAT(re.credit_repayment_time, '%Y-%m-%d') as statisticsLoanTime,
+       case when uch.channel_name is null then '自然流量' else uch.channel_name end as channelName, borrow.apply_new as isOld, re.* from 
+       `asset_repayment_order` re left join asset_borrow_order borrow on borrow.id = re.order_id, 
+       (select u.*, ch.`channel_code` as channel_code, ch.`channel_name` as channel_name 
+       <if test="channelId != null and channelId != -1">
+       		from `borrow_user` u , `channel_info` ch where u.`channelId` = ch.`id` 
+       		and ch.`id` = #{channelId} ) uch
+       </if>
+       <if test="channelId == null or channelId == -1">
+       		from `borrow_user` u left join `channel_info` ch on u.`channelId` = ch.`id` ) uch 
+       </if>     
+  		where re.`user_id` = uch.id
+        ORDER BY DATE_FORMAT(re.credit_repayment_time, '%Y-%m-%d') desc
+        
+    </select>
+    
+
+</mapper>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="UTF-8"/>
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" type="text/css" id="theme" th:href="@{/v2/css/theme-default.css}"/>
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.15/datatables.min.css"/>
+	<style type="text/css">
+		.desc{
+			font-size: 10px;
+			font-style: italic;
+			color:grey;
+		}
+	</style>
+</head>
+<body>
+	<div style="width:1000px; height:320px;  margin-left:30px">
+		<h2>今日数据</h2>
+		<div style="float: left">
+			<table>
+				<tr>
+					<td style="width: 250px">今日注册<br/><span class="desc">当天所有注册的新用户</span></td>
+					<td style="width: 150px"><input readonly="true" th:value="${homeInfo.dayRegisterUserCount}"/></td>
+					<td style="width: 100px">人</td>
+				</tr>
+				<tr>
+					<td>今日申请<br/><span class="desc">当天所有申请借款用户</span></td>
+					<td><input readonly="true" th:value="${homeInfo.dayApproveUserCount}" /></td>
+					<td>单</td>
+				</tr>
+				<tr>
+					<td>今日首次申请<br/><span class="desc">当天所有首次申请用户</span></td>
+					<td><input readonly="true" th:value="${homeInfo.dayFirstApproeUseCount}" /></td>
+					<td>单</td>
+				</tr>
+				<tr>
+					<td>今日审核通过<br/><span class="desc">当天所有审核通过用户</span></td>
+					<td><input readonly="true" th:value="${homeInfo.dayAdoptUserCount}" /></td>
+					<td>单</td>
+				</tr>
+				<tr>
+					<td>今日首次申请通过<br/><span class="desc">当天所有新客申请通过数量</span></td>
+					<td><input readonly="true" th:value="${homeInfo.dayFirstAdoptCount}" /></td>
+					<td>单</td>
+				</tr>
+			</table>
+		</div>
+		<div style="position:relative;margin-left: 550px;">
+			<table>
+				<tr>
+					<td style="width: 250px">今日审核通过率<br/><span class="desc">=今日审核通过/今日申请</span></td>
+				<td style="width: 150px"><input readonly="true" th:value="${T(com.inext.utils.DataFormat).getDataForString((homeInfo.dayForInstanceAdoptOrderCount)+'',(homeInfo.dayForInstanceOrderCount)+'')}" /></td>
+				<td style="width: 100px">%</td>
+				</tr>
+				<tr>
+					<td>今日老客通过率<br/><span class="desc">=今日老客通过数/今日老客申请数</span></td>
+					<td><input readonly="true" th:value="${T(com.inext.utils.DataFormat).getDataForString((homeInfo.dayOldAdoptCount)+'',(homeInfo.dayOldApporveCount)+'')}"/></td>
+					<td>%</td>
+				</tr>
+				<tr>
+					<td>今日放款量<br/><span class="desc">当天放款本金</span></td>
+					<td><input readonly="true" th:value="${homeInfo.dayTotalLoanMoney}" /></td>
+					<td>元</td>
+				</tr>
+				<tr>
+					<td>今日首次放款量<br/><span class="desc">当天新客放款量</span></td>
+					<td><input readonly="true" th:value="${homeInfo.dayFirstLoanMoney}" /></td>
+					<td>元</td>
+				</tr>
+				<tr>
+					<td>今日赎回量<br/><span class="desc">当天还款金额,不含续期</span></td>
+					<td><input readonly="true" th:value="${homeInfo.dayRepaymentMoney}" /></td>
+					<td>元</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div style="width:1000px; height:260px;  margin-left:30px;margin-top: 10px">
+		<h2>历史数据(含今日数据)</h2>
+		<div style="float: left">
+			<table>
+				<tr>
+					<td style="width: 250px">历史注册<br/><span class="desc">总注册数</span></td>
+					<td style="width: 150px"><input readonly="true" th:value="${homeInfo.userCount}" /></td>
+					<td style="width: 100px">人</td>
+				</tr>
+				<tr>
+					<td>历史放款总量<br/><span class="desc">总放款量</span></td>
+					<td><input readonly="true" th:value="${homeInfo.totalBorrowInfo}" /></td>
+					<td>(单数/金额万)</td>
+				</tr>
+				<tr>
+					<td>历史赎回总量<br/><span class="desc">总还款量,不含续期</span></td>
+					<td><input readonly="true" th:value="${homeInfo.totalRepaymentInfo}" /></td>
+					<td>(单数/金额万)</td>
+				</tr>
+				<tr>
+					<td>历史续期总量<br/><span class="desc">总续期量</span></td>
+					<td><input readonly="true" th:value="${homeInfo.totalRenewalInfo}" /></td>
+					<td>(单数/金额万)</td>
+				</tr>
+			</table>
+		</div>
+		<div style="position:relative;margin-left: 550px;">
+			<table>
+				<tr>
+					<td style="width: 250px">待赎回总量<br/><span class="desc">总待还款量(数量包含续期,金额为本金不含续期)</span></td>
+					<td style="width: 150px"><input readonly="true" th:value="${homeInfo.totalNoRepaymentInfo}" /></td>
+					<td style="width: 100px">(单数/金额万)</td>
+				</tr>
+
+				<tr>
+					<td>逾期未赎回总量<br/><span class="desc">总逾期量及本金金额</span></td>
+					<td><input readonly="true" th:value="${homeInfo.totalOverdueInfo}" /></td>
+					<td>(单数/金额万)</td>
+				</tr>
+				<tr>
+					<td>逾期S1占比<br/><span class="desc">逾期1-10天的数量及本金金额</span></td>
+					<td><input readonly="true" th:value="${homeInfo.totalOverdueS1Info}" /></td>
+					<td>(单数/金额万)</td>
+				</tr>
+				<tr>
+					<td>逾期S2占比<br/><span class="desc">逾期11-30天的数量及本金金额</span></td>
+					<td><input readonly="true" th:value="${homeInfo.totalOverdueS2Info}" /></td>
+					<td>(单数/金额万)</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div style="width:1000px; height:160px;margin-left:30px;margin-top: 10px">
+		<h2>风控统计</h2>
+		<div style="float: left">
+			<table>
+				<tr>
+					<td style="width: 250px">机审累计订单数<br/><span class="desc">除待审核外的所有借款数</span></td>
+					<td style="width: 150px"><input readonly="true" th:value="${homeInfo.forInstanceOrderCount}" /></td>
+					<td style="width: 100px">笔</td>
+				</tr>
+				<tr>
+					<td>机审通过累计订单数<br/><span class="desc">所有审核通过数</span></td>
+					<td><input readonly="true" th:value="${homeInfo.forInstanceAdoptOrderCount}" /></td>
+					<td>笔</td>
+				</tr>
+				<tr>
+					<td>机审订单通过率<br/><span class="desc">=机审通过数/机审累计数</span></td>
+					<td><input readonly="true" th:value="${T(com.inext.utils.DataFormat).getDataForString((homeInfo.forInstanceAdoptOrderCount)+'',(homeInfo.forInstanceOrderCount)+'')}" /></td>
+					<td>%</td>
+				</tr>
+
+			</table>
+		</div>
+		<div style="position:relative;margin-left: 550px;">
+			<table>
+				<tr>
+					<td style="width: 250px">今日机审订单数<br/><span class="desc">当天除待审核外的所有借款数</span></td>
+					<td style="width: 150px"><input readonly="true" th:value="${homeInfo.dayForInstanceOrderCount}" /></td>
+					<td style="width: 100px">笔</td>
+				</tr>
+				<tr>
+					<td>今日机审通过订单数<br/><span class="desc">当天所有审核通过数</span></td>
+					<td><input readonly="true" th:value="${homeInfo.dayForInstanceAdoptOrderCount}" /></td>
+					<td>笔</td>
+				</tr>
+				<tr>
+					<td>今日机审通过率<br/><span class="desc">=今日机审通过数/今日订单数</span></td>
+					<td><input readonly="true" th:value="${T(com.inext.utils.DataFormat).getDataForString((homeInfo.dayForInstanceAdoptOrderCount)+'',(homeInfo.dayForInstanceOrderCount)+'')}"/></td>
+					<td>%</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</body>
+<script type="text/javascript" th:src='@{/v2/js/jquery.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/jquery-ui.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/bootstrap.min.js}'></script>
+<script type='text/javascript' th:src='@{/v2/js/icheck.min.js}'></script>
+<script type="text/javascript" th:src="@{/v2/js/jquery.mCustomScrollbar.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/bootstrap-select.js}"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.15/datatables.min.js"></script>
+<!-- <script type="text/javascript" th:src="@{/v2/js/jquery.dataTables.min.js}"></script> -->
+<script type="text/javascript" th:src="@{/v2/js/settings.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/plugins.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/actions.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/bootstrap-treeview.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/common.js}"></script>
+<script th:src="@{/js/page/create-page.js}" type="text/javascript"></script>
+<script th:src="@{/v2/js/dataTables.treeGrid.js}"></script>
+
+</html>

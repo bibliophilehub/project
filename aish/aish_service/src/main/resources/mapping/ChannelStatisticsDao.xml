@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.ChannelStatisticsDao">
+
+    <sql id="Base_Column_List">
+        id, channel_id, statistics_date, channel_name, pv_count, uv_count, uv_rate, register_count, register_rate,
+        verified_count, verified_rate, borrow_count, borrow_rate, audit_success_count, audit_success_rate, loan_success_count,
+        loan_success_rate, renewal_count, renewal_rate, repay_count, overdue_repay_count, overdue_repay_rate, repay_amount,
+        overdue_repay_amount, overdue_repay_amount_rate, real_count, phone_count, operator_count, card_count,
+        zhima_count, loan_amount, overdue_rate, update_time
+    </sql>
+
+    <select id="generateChannelStatisticsByDay" resultType="com.inext.entity.ChannelStatistics">
+        SELECT
+            c.id channelId,
+            c.channel_name channelName,
+            DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') statisticsDate,
+            IFNULL(csp.pv_Count, 0) pvCount,
+            IFNULL(csp.uv_Count, 0) uvCount,
+            IFNULL(TRUNCATE(csp.uv_Count / csp.pv_Count * 100, 2), 0) uvRate,
+            COUNT(bu.channelId) registerCount,
+            IFNULL(TRUNCATE(COUNT(bu.channelId) / csp.uv_Count * 100, 2), 0) registerRate,
+            IFNULL(vc_view.verifiedCount, 0) verifiedCount,
+            IFNULL(TRUNCATE(vc_view.verifiedCount / COUNT(bu.channelId) * 100, 2), 0) verifiedRate,
+            IFNULL(bc_view.borrowCount,0) borrowCount,
+            IFNULL(TRUNCATE(bc_view.borrowCount / COUNT(bu.channelId) * 100, 2), 0) borrowRate,
+            IFNULL(asc_view.auditSuccessCount,0) auditSuccessCount,
+            IFNULL(TRUNCATE(asc_view.auditSuccessCount / bc_view.borrowCount * 100, 2), 0) auditSuccessRate,
+            IFNULL(lsc_view.loanSuccessCount,0) loanSuccessCount,
+            IFNULL(TRUNCATE(lsc_view.loanSuccessCount / asc_view.auditSuccessCount * 100, 2), 0) loanSuccessRate,
+            IFNULL(rwc_view.renewalCount,0) renewalCount,
+            IFNULL(TRUNCATE(rwc_view.renewalCount / sr_view.shouldRepayCount * 100, 2), 0) renewalRate,
+            IFNULL(rc_view.repayCount,0) repayCount,
+            IFNULL(orc_view.overdueRepayCount, 0) overdueRepayCount,
+            IFNULL(TRUNCATE(orc_view.overdueRepayCount / rc_view.repayCount * 100, 2), 0) overdueRepayRate,
+            IFNULL(rc_view.repayAmount,0) repayAmount,
+            IFNULL(orc_view.overdueRepayAmount, 0) overdueRepayAmount,
+            IFNULL(TRUNCATE(orc_view.overdueRepayAmount / rc_view.repayAmount * 100, 2), 0) overdueRepayAmountRate,
+            COUNT(IF(bu.isVerified = 1, TRUE, NULL)) realCount,
+            COUNT(IF(bu.isPhone = 1, TRUE, NULL)) phoneCount,
+            COUNT(IF(bu.isOperator = 1, TRUE, NULL)) operatorCount,
+            COUNT(IF(bu.isCard = 1, TRUE, NULL)) cardCount,
+            COUNT(IF(bu.isZhima = 1, TRUE, NULL)) zhimaCount,
+            IFNULL(lsc_view.loanAmount,0) loanAmount,
+            IFNULL(TRUNCATE(ov_view.overdueCount / sr_view.shouldRepayCount * 100, 2), 0) overdueRate,
+            NOW() updateTime
+        FROM channel_info c
+        LEFT JOIN borrow_user bu ON c.id = bu.channelId AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND bu.channelId = #{channelId}
+        LEFT JOIN channel_statistics_perday csp on csp.channel_id = #{channelId} AND DATE_FORMAT(csp.statistics_date, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d')
+        LEFT JOIN(SELECT COUNT(1) AS verifiedCount from borrow_user where isVerified = 1 AND isPhone = 1 AND isOperator = 1 AND isCard = 1 AND isZhima = 1 AND DATE_FORMAT(createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND channelId = #{channelId} ) vc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS borrowCount FROM asset_borrow_order abo JOIN borrow_user bu ON abo.user_id = bu.id AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') WHERE DATE_FORMAT(abo.order_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND	abo.channel_id = #{channelId}) bc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS auditSuccessCount FROM asset_borrow_order abo JOIN borrow_user bu ON abo.user_id = bu.id AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') WHERE abo.`status` <![CDATA[ <> ]]> 5 AND DATE_FORMAT(abo.order_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND DATE_FORMAT(abo.audit_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND	 abo.channel_id = #{channelId}) asc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS loanSuccessCount, SUM(per_pay_money) AS loanAmount FROM asset_borrow_order abo JOIN borrow_user bu ON abo.user_id = bu.id AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') WHERE abo.`status` <![CDATA[ <> ]]> 4 AND DATE_FORMAT(abo.order_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND DATE_FORMAT(abo.loan_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND abo.channel_id = #{channelId}) lsc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS renewalCount FROM asset_renewal_order aro JOIN asset_borrow_order abo ON aro.order_id = abo.id WHERE DATE_FORMAT(aro.renewal_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND DATE_FORMAT(DATE_ADD(abo.loan_time,INTERVAL 6 day),'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND abo.channel_id = #{channelId}) rwc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS repayCount,sum(repaymented_amount) AS repayAmount FROM asset_repayment_order aro JOIN borrow_user bu ON aro.user_id = bu.id WHERE DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND bu.channelId = #{channelId}) rc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS overdueRepayCount,sum(repaymented_amount) AS overdueRepayAmount FROM asset_repayment_order aro JOIN borrow_user bu ON aro.user_id = bu.id WHERE DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND aro.late_day > 0 AND	bu.channelId = #{channelId}) orc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS shouldRepayCount FROM asset_borrow_order abo JOIN borrow_user bu ON abo.user_id = bu.id AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(DATE_SUB(#{statisticsDate},INTERVAL 6 day), '%Y-%m-%d') WHERE abo.`status` <![CDATA[ <> ]]> 4 AND DATE_FORMAT(abo.order_time,'%Y-%m-%d') = DATE_FORMAT(DATE_SUB(#{statisticsDate},INTERVAL 6 day), '%Y-%m-%d') AND DATE_FORMAT(abo.loan_time,'%Y-%m-%d') = DATE_FORMAT(DATE_SUB(#{statisticsDate},INTERVAL 6 day), '%Y-%m-%d') AND abo.channel_id = #{channelId}) sr_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS overdueCount FROM asset_repayment_order aro JOIN borrow_user bu ON aro.user_id = bu.id WHERE DATE_FORMAT(aro.repayment_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND DATE_FORMAT(aro.credit_repayment_time,'%Y-%m-%d') = DATE_FORMAT(DATE_SUB(#{statisticsDate},INTERVAL 6 day), '%Y-%m-%d') AND aro.order_status <![CDATA[ <> ]]> 8 AND bu.channelId = #{channelId}) ov_view ON 1=1
+        WHERE c.id = #{channelId}
+    </select>
+
+    <select id="generateChannelStatisticsByHour" resultType="com.inext.entity.ChannelStatistics">
+        SELECT
+            c.id channelId,
+            c.channel_name channelName,
+            DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') statisticsDate,
+            IFNULL(csl_view.pvCount, 0) pvCount,
+            IFNULL(csl_view.uvCount, 0) uvCount,
+            IFNULL(TRUNCATE(csl_view.uvCount / csl_view.pvCount * 100, 2), 0) uvRate,
+            COUNT(bu.channelId) registerCount,
+            IFNULL(TRUNCATE(COUNT(bu.channelId) / csl_view.uvCount * 100, 2), 0) registerRate,
+            IFNULL(vc_view.verifiedCount, 0) verifiedCount,
+            IFNULL(TRUNCATE(vc_view.verifiedCount / COUNT(bu.channelId) * 100, 2), 0) verifiedRate,
+            IFNULL(bc_view.borrowCount,0) borrowCount,
+            IFNULL(TRUNCATE(bc_view.borrowCount / COUNT(bu.channelId) * 100, 2), 0) borrowRate,
+            IFNULL(asc_view.auditSuccessCount,0) auditSuccessCount,
+            IFNULL(TRUNCATE(asc_view.auditSuccessCount / bc_view.borrowCount * 100, 2), 0) auditSuccessRate,
+            IFNULL(lsc_view.loanSuccessCount,0) loanSuccessCount,
+            IFNULL(TRUNCATE(lsc_view.loanSuccessCount / asc_view.auditSuccessCount * 100, 2), 0) loanSuccessRate,
+            IFNULL(rwc_view.renewalCount,0) renewalCount,
+            IFNULL(TRUNCATE(rwc_view.renewalCount / sr_view.shouldRepayCount * 100, 2), 0) renewalRate,
+            IFNULL(rc_view.repayCount,0) repayCount,
+            IFNULL(orc_view.overdueRepayCount, 0) overdueRepayCount,
+            IFNULL(TRUNCATE(orc_view.overdueRepayCount / rc_view.repayCount * 100, 2), 0) overdueRepayRate,
+            IFNULL(rc_view.repayAmount,0) repayAmount,
+            IFNULL(orc_view.overdueRepayAmount, 0) overdueRepayAmount,
+            IFNULL(TRUNCATE(orc_view.overdueRepayAmount / rc_view.repayAmount * 100, 2), 0) overdueRepayAmountRate,
+            COUNT(IF(bu.isVerified = 1, TRUE, NULL)) realCount,
+            COUNT(IF(bu.isPhone = 1, TRUE, NULL)) phoneCount,
+            COUNT(IF(bu.isOperator = 1, TRUE, NULL)) operatorCount,
+            COUNT(IF(bu.isCard = 1, TRUE, NULL)) cardCount,
+            COUNT(IF(bu.isZhima = 1, TRUE, NULL)) zhimaCount,
+            IFNULL(lsc_view.loanAmount,0) loanAmount,
+            IFNULL(TRUNCATE(ov_view.overdueCount / sr_view.shouldRepayCount * 100, 2), 0) overdueRate,
+            NOW() updateTime
+        FROM channel_info c
+        LEFT JOIN borrow_user bu ON c.id = bu.channelId AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND bu.channelId = #{channelId}
+        LEFT JOIN(SELECT COUNT(IF(type = 1, TRUE, NULL)) AS pvCount, COUNT(IF(type = 2, TRUE, NULL)) AS uvCount FROM channel_statistics_log WHERE DATE_FORMAT(statistics_date, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') and channel_id = #{channelId}) csl_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS verifiedCount from borrow_user where isVerified = 1 AND isPhone = 1 AND isOperator = 1 AND isCard = 1 AND isZhima = 1 AND DATE_FORMAT(createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND channelId = #{channelId} ) vc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS borrowCount FROM asset_borrow_order abo JOIN borrow_user bu ON abo.user_id = bu.id AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') WHERE DATE_FORMAT(abo.order_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND	abo.channel_id = #{channelId}) bc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS auditSuccessCount FROM asset_borrow_order abo JOIN borrow_user bu ON abo.user_id = bu.id AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') WHERE abo.`status` <![CDATA[ <> ]]> 5 AND DATE_FORMAT(abo.order_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND DATE_FORMAT(abo.audit_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND	 abo.channel_id = #{channelId}) asc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS loanSuccessCount, SUM(per_pay_money) AS loanAmount FROM asset_borrow_order abo JOIN borrow_user bu ON abo.user_id = bu.id AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') WHERE abo.`status` <![CDATA[ <> ]]> 4 AND DATE_FORMAT(abo.order_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND DATE_FORMAT(abo.loan_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND abo.channel_id = #{channelId}) lsc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS renewalCount FROM asset_renewal_order aro JOIN asset_borrow_order abo ON aro.order_id = abo.id WHERE DATE_FORMAT(aro.renewal_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND DATE_FORMAT(abo.loan_end_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND abo.channel_id = #{channelId}) rwc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS repayCount,sum(repaymented_amount) AS repayAmount FROM asset_repayment_order aro JOIN borrow_user bu ON aro.user_id = bu.id WHERE DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND bu.channelId = #{channelId}) rc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS overdueRepayCount,sum(repaymented_amount) AS overdueRepayAmount FROM asset_repayment_order aro JOIN borrow_user bu ON aro.user_id = bu.id WHERE DATE_FORMAT(aro.repayment_real_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND aro.late_day > 0 AND	bu.channelId = #{channelId}) orc_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS shouldRepayCount FROM asset_borrow_order abo JOIN borrow_user bu ON abo.user_id = bu.id AND DATE_FORMAT(bu.createTime, '%Y-%m-%d') = DATE_FORMAT(DATE_SUB(#{statisticsDate},INTERVAL 6 day), '%Y-%m-%d') WHERE abo.`status` <![CDATA[ <> ]]> 4 AND DATE_FORMAT(abo.order_time,'%Y-%m-%d') = DATE_FORMAT(DATE_SUB(#{statisticsDate},INTERVAL 6 day), '%Y-%m-%d') AND DATE_FORMAT(abo.loan_time,'%Y-%m-%d') = DATE_FORMAT(DATE_SUB(#{statisticsDate},INTERVAL 6 day), '%Y-%m-%d') AND abo.channel_id = #{channelId}) sr_view ON 1=1
+        LEFT JOIN(SELECT COUNT(1) AS overdueCount FROM asset_repayment_order aro JOIN borrow_user bu ON aro.user_id = bu.id WHERE DATE_FORMAT(aro.repayment_time,'%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') AND DATE_FORMAT(aro.credit_repayment_time,'%Y-%m-%d') = DATE_FORMAT(DATE_SUB(#{statisticsDate},INTERVAL 6 day), '%Y-%m-%d') AND aro.order_status <![CDATA[ <> ]]> 8 AND bu.channelId = #{channelId}) ov_view ON 1=1
+        WHERE c.id = #{channelId}
+    </select>
+
+    <select id="selectByChannelIdAndstatisticsDate" resultType="com.inext.entity.ChannelStatistics">
+        SELECT * FROM channel_statistics WHERE channel_id = #{channelId} AND statistics_date = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d')
+    </select>
+
+    <select id="selectByParams" resultType="com.inext.entity.ChannelStatistics">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM channel_statistics
+        <where>
+            <if test="startDate != null">
+                and statistics_date <![CDATA[ >= ]]> #{startDate}
+            </if>
+            <if test="endDate != null">
+                and statistics_date <![CDATA[ <= ]]> #{endDate}
+            </if>
+            <if test="channelId != null and channelId != -1">
+                and channel_id = #{channelId}
+            </if>
+            <if test="channelName != null">
+                and channel_name = #{channelName}
+            </if>
+        </where>
+        ORDER BY channel_id DESC, statistics_date ASC
+    </select>
+
+    <select id="getDiversionStatisticsHisList" resultType="map">
+        SELECT
+          channel_name channelName,
+          statistics_date statisticsDate,
+          register_count registerCount,
+          verified_count verifiedCount
+        FROM channel_statistics
+        WHERE
+            channel_id = #{channelId}
+            and DATE_FORMAT(statistics_date, '%Y-%m-%d') <![CDATA[ < ]]> DATE_FORMAT(NOW(), '%Y-%m-%d')
+        ORDER BY channel_id DESC, statistics_date DESC
+    </select>
+</mapper>

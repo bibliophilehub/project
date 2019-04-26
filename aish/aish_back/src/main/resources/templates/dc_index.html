@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!-- saved from url=(0057)http://xjxdkcs.xianjinxia.com:9003/view/product/list.html -->
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml" style="height: 100%;width: 100%;">
+<head>
+<title>贷款超市</title>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="telephone=no" name="format-detection"/>
+<meta content="email=no" name="format-detection"/>
+<!--优先使用 IE 最新版本和 Chrome-->
+<meta content="IE=Edge,chrome=1" http-equiv="X-UA-Compatible"/>
+<!--禁止百度SiteApp转码-->
+<meta content="no-siteapp" http-equiv="Cache-Control"/>
+<meta content="portrait" name="x5-orientation"/>
+<meta content="portrait" name="screen-orientation"/>
+<link th:href="@{/dc/base.css}" media="screen"  rel="stylesheet" type="text/css"/>
+<link th:href="@{/dc/index.css}" rel="stylesheet" type="text/css"/>
+<script type="text/javascript">
+</script>
+<script id="td_tracking_sdk" th:href="@{/dc/h5sdk.js}" type="text/javascript"></script>
+<script type="text/javascript" th:href="@{/dc/adt_h5_1.0.0.min.js}"></script>
+</head>
+<body class="position-re">
+<div class="banner">
+    <img alt="" th:src="@{/dc/banner.jpg}"/>
+</div>
+<div class="list">
+    <ul th:if="${list}">
+        <li th:each="info : ${list}">
+            <a class="list-a" th:href="${info.url_path}" th:onclick="'doClick('+${info.id}+')'">
+                <dl class="list-con clearfix">
+                    <dt>
+                        <img alt="" class="list-logo" th:src="${info.img_path}"/>
+                    </dt>
+                    <dd>
+                        <div class="first-text">
+                            <span th:text="${info.name}"></span> <img alt="" class="red-tip" th:src="@{/dc/red.png}"/>
+                        </div>
+                        <div class="second-text" th:text="${'可贷'+info.begin_money+'-'+info.end_money+'元'}"></div>
+                        <div class="third-text" th:text="${info.describes}"></div>
+                    </dd>
+                </dl>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<script type="text/javascript" th:src="@{/js/jquery-1.7.2.js}"></script>
+<script th:src="@{/dc/base.js}" type="text/javascript"></script>
+<script type="text/javascript">
+    /*<![CDATA[*/
+
+    $(function () {
+        $("#back").on("click", function () {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 500);
+        });
+
+        $(".list ul li").each(function () {
+            if ($(".list li").length < 5) {
+                $("#back").css("display", 'none');
+            } else {
+                $("#back").css("display", 'block');
+            }
+        })
+
+        $(".list ul li").click(function () {
+            $(this).each(function () {
+                var appUrl = $(this).find('.appurl').val() || '';
+                if (appUrl) {
+                    appUrl = appUrl.trim();
+                    window.location.href = appUrl;
+                }
+            });
+        })
+    });
+
+    function doClick(id) {
+            $.get("/supermarket/cli/"+id);
+    }
+    /*]]>*/
+</script>
+</body>
+</html>

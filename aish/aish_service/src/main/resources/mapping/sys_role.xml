@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.ISysRoleDao">
+	<!-- 根据roleId查询子角色id -->
+    <select id="getRoleChildIds" parameterType="String" resultType="String">
+        select getRoleChildList(#{roleId});
+    </select>
+	<!-- 根据roleIds查询角色列表 -->
+    <select id="getRoleTreeList" resultType="Map">
+        SELECT
+        id,
+        parent_id pid,
+        name text
+        FROM
+        sys_role sr
+        WHERE sr.enabled=1
+        AND sr.id in ${roleIds}
+        order by rank
+    </select>
+    <!-- 根据parentId查询角色列表 -->
+    <select id="getByParentId" parameterType="Integer" resultType="com.inext.entity.SysRole">
+        SELECT
+        id,
+        rank,
+        parent_id parentId,
+        name,
+        status,
+        remark,
+        create_time createTime,
+        enabled
+        FROM
+        sys_role sr
+        WHERE
+        sr.parent_id = #{parentId}
+		order by rank
+    </select>
+	<!-- 根据主键查询系统角色 -->
+	<select id="findSysRoleById" parameterType="java.lang.String" resultType="com.inext.entity.SysRole">
+        SELECT * FROM sys_role sr WHERE sr.id = #{id}
+    </select>
+    <!-- 添加角色 -->
+    <insert id="saveSysRole" parameterType="com.inext.entity.SysRole" keyProperty="id" useGeneratedKeys="true">
+        insert into sys_role(parent_id,name,remark,create_time,enabled,create_account,update_account,update_time,rank)
+        values (#{parentId},#{name},#{remark},#{createTime},#{enabled},#{createAccount},#{updateAccount},#{updateTime},#{rank})
+    </insert>
+
+
+    <select id="getRoleByParams" resultType="com.inext.entity.SysRole">
+        SELECT
+        id,
+        parent_id parentId,
+        name,
+        status,
+        remark,
+        create_time createTime,
+        enabled
+        FROM
+        sys_role sr
+        WHERE
+        1 = 1
+        AND sr.parent_id = #{parentId}
+        AND sr.`status` = #{status}
+        AND sr.enabled = #{enabled}
+    </select>
+</mapper>

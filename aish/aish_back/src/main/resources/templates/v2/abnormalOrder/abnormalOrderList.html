@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <title>重复扣款、扣款后续期订单列表</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" type="text/css" id="theme"
+          th:href="@{/v2/css/theme-default.css}"/>
+    <link rel="stylesheet" type="text/css"
+          th:href="@{/v2/css/jqueryDatatable.css}"/>
+</head>
+
+<body>
+<form role="form"
+      th:action="@{/abnormalOrder/pageList}" id="formpro"
+      class="form-horizontal">
+    <div class="block no-col-padding" style="margin-bottom: 0;">
+        <div class="form-group col-md-12 btn-form" style="text-align: left;">
+            <button type="button" id="export" class="btn btn-info">导出excel</button>
+            <a style="display: none"
+               th:href="@{/abnormalOrder/pageListExport}"
+               id="exportExcel">导出</a>
+        </div>
+        <div class="form-group col-md-4">
+            <label class="col-md-4 control-label">订单号：</label>
+            <div class="col-md-8">
+                <input type="text" id="searchOrderId" name="searchOrderId" th:value="${searchOrderId}"/>
+            </div>
+        </div>
+        <div class="form-group col-md-4">
+            <label class="col-md-4 control-label">手机：</label>
+            <div class="col-md-8">
+                <input type="text" id="userPhone" name="userPhone" th:value="${userPhone}"/>
+            </div>
+        </div>
+        <div class="form-group col-md-4">
+            <label class="col-md-4 control-label">姓名：</label>
+            <div class="col-md-8">
+                <input type="text" id="userName" name="userName" th:value="${userName}"/>
+            </div>
+        </div>
+        <div class="form-group col-md-4 min-w330">
+            <label class="col-md-4 control-label">应还款时间</label>
+            <div class="col-md-8">
+                <input name="startDate" id="startDate" th:value="${startDate}"
+                       type="text" class="required"
+                       style="width: 45%; float: left; padding: 6px 9px;"
+                       onfocus="WdatePicker({isShowClear:true,readOnly:false,dateFmt:'yyyy-MM-dd',maxDate:'#F{$dp.$D(\'endDate\')||\'%y-%M-%d\'}'})"
+                       title="请输入开始日期" size="30"/><span class="line">-</span><input
+                    name="endDate" style="width: 45%; float: left; padding: 6px 9px;"
+                    id="endDate" th:value="${endDate}" type="text" class="required"
+                    onfocus="WdatePicker({isShowClear:true,readOnly:false,dateFmt:'yyyy-MM-dd',minDate:'#F{$dp.$D(\'startDate\')||\'%y-%M-%d\'}'})"
+                    title="请输入截止日期" size="30"/>
+            </div>
+        </div>
+        <div class="form-group col-md-4">
+            <label class="col-md-4 control-label">状态：</label>
+            <div class="col-md-8">
+                <select id="type" name="type" onclick="setCookie('select_1',this.selectedIndex)">
+                    <option value ="0" > </option>
+                    <option value ="1" selected="selected">待退款</option>
+                    <option value ="2" >完成</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group col-md-4 btn-form" style="text-align: right;">
+            <button type="submit" class="btn btn-info">查询</button>
+        </div>
+    </div>
+    <input id="sortColumn" name="sortColumn" th:value="${sortColumn}" type="hidden"/>
+    <input id="sortFlag" name="sortFlag" value="0" type="hidden"/>
+</form>
+<div class="panel-body">
+
+    <table class="table" id="bigDataList">
+        <thead>
+        <tr>
+            <th onclick="doSort('orderId','sortFlag')">订单号</th>
+            <th onclick="doSort('userName','sortFlag')">姓名</th>
+            <th onclick="doSort('userPhone','sortFlag')">手机号</th>
+            <th onclick="doSort('creditRepaymentTime','sortFlag')">借款日期</th>
+            <th onclick="doSort('repaymentTime','sortFlag')">应还款日期</th>
+            <th onclick="doSort('bankName','sortFlag')">绑定银行</th>
+            <th onclick="doSort('cardCode','sortFlag')">绑定银行卡号</th>
+            <th onclick="doSort('seqId','sortFlag')">代扣商家单号</th>
+            <th onclick="doSort('hlOrderNo','sortFlag')">快钱单号</th>
+            <th onclick="doSort('hlTime','sortFlag')">快钱扣款时间</th>
+            <th onclick="doSort('hcOrderNo','sortFlag')">汇潮单号</th>
+            <th onclick="doSort('hcTime','sortFlag')">汇潮扣款时间</th>
+            <th onclick="doSort('issue','sortFlag')">问题</th>
+            <th onclick="doSort('creater','sortFlag')">操作人</th>
+            <th onclick="doSort('creatTime','sortFlag')">完成时间</th>
+            <th onclick="doSort('type','sortFlag')">状态</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="page,iterStat:${pageInfo.list}">
+            <td th:text="${page.orderId}"></td>
+            <td th:text="${page.userName}"></td>
+            <td th:text="${T(com.inext.utils.DataFormat).getUserPhoneNo(page.userPhone)}"></td>
+            <td th:text="${page.creditRepaymentTime==null?'':#dates.format(page.creditRepaymentTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${page.repaymentTime==null?'':#dates.format(page.repaymentTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${page.bankName}"></td>
+            <td th:text="${page.cardCode}"></td>
+            <td th:text="${page.seqId}"></td>
+            <td th:text="${page.hlOrderNo}"></td>
+            <td th:text="${page.hlTime==null?'':#dates.format(page.hlTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${page.hcOrderNo}"></td>
+            <td th:text="${page.hcxTime==null?'':#dates.format(page.hcxTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${page.issue==1?'重复扣款':'扣款后续期'}"></td>
+            <td th:text="${page.creater}"></td>
+            <td th:text="${page.creatTime==null?'':#dates.format(page.creatTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${page.type==0?'待退款':'完成'}"></td>
+            <td>
+                <a th:text="${page.type==0?'退款':'详情'}"
+                   href="#" th:onclick="${'assetRepaymented('''+(page.orderId)+''' ,'''+page.userName+''','''+page.bankName+''','''+page.cardCode+''','''+page.issue+'''
+                   ,'''+page.userId+''','''+page.refundOrderNo+''','''+page.refundBank+''','''+page.refundCardNo+''','''+page.amount+''','''+page.remark+''','+page.type+')'}"></a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="message-box animated fadeIn" data-sound="alert" id="box">
+        <div class="nav col-md-8 nav-ul" style="left: 18%; top: 16%;">
+            <form action="" id="abnormalAmountForm">
+                <input type="hidden" name="userId" id="userId"/>
+                <input type="hidden" name="issue" id="issue"/>
+                <table class="openBox"  style="border-bottom:rgba(34,0,0,0.3) solid 1px;text-align: left;border-radius: 0px 0px 0px 0px;">
+                    <tr style="text-align: left">
+                        <td style="text-align: left"> <span style="font-size:20px;margin-left: 25px">  客户信息</span></td>
+                    </tr>
+                </table>
+                <table class="openBox" style="border-radius: 0px 0px 0px 0px;">
+                        <tr>
+                            <td class="td-left">退款用户</td>
+                            <td class="td-right">
+                                <input type="text" name="refundUserName" id="refundUserName" disabled="true"
+                                       style="background-color: #fbf9ee"/>
+                            </td>
+                            <td class="td-left">订单号</td>
+                            <td class="td-right"><input name="orderId" id="orderId" type="text"
+                                                        readonly="readonly" style="background-color: #fbf9ee"/></td>
+
+                        </tr>
+                        <tr>
+                            <td class="td-left">绑定银行</td>
+                            <td class="td-right"><input type="text" name="bindBank" id="bindBank" readonly="readonly"
+                                                        style="background-color: #fbf9ee"/></td>
+                            <td class="td-left">绑定银行账号</td>
+                            <td class="td-right">
+                                <input type="text" name="bindCardNo" id="bindCardNo" readonly="readonly"
+                                       style="background-color: #fbf9ee"/>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="td-left">问题</td>
+                            <td class="td-right"><input type="text" id="issueName" readonly="readonly"
+                                                        style="background-color: #fbf9ee"/></td>
+                        </tr>
+                </table>
+                <table class="openBox"  style="border-bottom:rgba(34,0,0,0.3) solid 1px;border-top:rgba(34,0,0,0.3) solid 1px;text-align: left;border-radius: 0px 0px 0px 0px;">
+                    <tr style="text-align: left">
+                        <td style="text-align: left"> <span style="font-size:20px;margin-left: 25px">  退款信息</span></td>
+                    </tr>
+                </table>
+                <table class="openBox" style="border-radius: 0px 0px 0px 0px;">
+                        <tr>
+                        <td class="td-left">电子回执单号<font color="red">*</font></td>
+                        <td class="td-right" colspan="2"><input type="text" name="repaymentOrderNo"
+                                                                id="repaymentOrderNo" placeholder="请输入电子回执单号"/></td>
+                        <td class="td-left">退款金额(元)<font color="red">*</font></td>
+                        <td class="td-right" colspan="2"><input type="text" id="repaymentAmounted"
+                                                                name="repaymentAmounted"
+                                                                placeholder="请输入退款金额"/></td>
+                    </tr>
+                        <tr>
+                            <td class="td-left">退款银行（客户）<font color="red">*</font></td>
+                            <td class="td-right" colspan="2">
+                                <select name="refundBank" id="refundBank"  placeholder="请选则退款银行">
+                                        <option th:each="bankInfo,iterStat:${bankAllInfo}" th:value="${bankInfo.bankCode}" th:text="${bankInfo.bankName}"></option>
+                                </select>
+                                <!--<input type="text" name="refundBank" id="refundBank" placeholder="请输入退款银行"/>-->
+                            </td>
+                            <td class="td-left">退款银行账号（客户）<font color="red">*</font></td>
+                            <td class="td-right" colspan="2"><input type="text" id="refundCardNo" name="refundCardNo"
+                                                                    placeholder="请输入退款银行帐号"/></td>
+                        </tr>
+                        <tr>
+                            <td class="td-left">备注</td>
+                            <td class="td-right" colspan="3">
+								<textarea rows="5" cols="10"
+                                          id="remark" name="remark" style="width:100%;padding: 6px 14px;"></textarea>
+                            </td>
+                        </tr>
+                    <tr align="center">
+                        <td colspan="4">
+                            <button type="button" class="btn btn-success success" onclick="dosubmit()">保存</button>
+                            <button type="button" class="btn btn-default active">关闭</button>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+    </div>
+
+
+    <table width="95%" border="0" align="center" cellpadding="0"
+           cellspacing="0">
+        <tr>
+            <td height="33">
+                <table width="100%" border="0" align="center" cellpadding="0"
+                       cellspacing="0" class="right-font08">
+                    <tr>
+                        <td align="left" class="td2"
+                            th:if="${not #lists.isEmpty(pageInfo)}"
+                            th:text="   ${'共'+pageInfo.total+ '条'}"></td>
+                        <td align="right" class="td2" id="pageFooter"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+<script type="text/javascript" th:src='@{/v2/js/jquery.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/jquery-ui.min.js}'></script>
+<script type="text/javascript" th:src='@{/v2/js/bootstrap.min.js}'></script>
+<script type='text/javascript' th:src='@{/v2/js/icheck.min.js}'></script>
+<script type="text/javascript"
+        th:src="@{/v2/js/jquery.mCustomScrollbar.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/bootstrap-select.js}"></script>
+<script type="text/javascript"
+        th:src="@{/v2/js/jquery.dataTables.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/settings.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/plugins.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/actions.js}"></script>
+<script type="text/javascript"
+        th:src="@{/v2/js/bootstrap-treeview.min.js}"></script>
+<script type="text/javascript" th:src="@{/v2/js/common.js}"></script>
+<script th:src="@{/js/page/create-page.js}" type="text/javascript"></script>
+<script th:src="@{/js/My97DatePicker/WdatePicker.js}"
+        type="text/javascript"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    $(function () {
+        var selectedIndex = getCookie("select_1");
+        if(selectedIndex != null) {
+            $("#type").val(selectedIndex);
+        }
+
+
+
+        $("#pageFooter").html(createPager([[${pageInfo}]], "formpro"));
+        $("#orderStatus").val([[${orderStatus}]]);
+        $("#export").click(function () {
+            var exportExcel = document.getElementById("exportExcel");
+            var href = exportExcel.href;
+            exportExcel.href = href + '?' + $("#formpro").serialize();
+            exportExcel.click();
+            exportExcel.href = href;
+        });
+        $("#queryOperate").click(function () {
+            /*<![CDATA[*/
+            var startDate = $("#startDate").val();
+            var endDate = $("#endDate").val();
+            if (startDate == null || startDate == "") {
+                alert("开始时间不能为空");
+                return;
+            }
+            if (endDate == null || endDate == "") {
+                alert("结束时间不能为空");
+                return;
+            }
+            //时间不大于7天
+            //console.log(startDate+","+endDate);
+            var d1 = new Date(startDate);
+            var d2 = new Date(endDate);
+            //console.log(parseInt(d2 - d1) /1000/60/60/24);//两个时间相差的小时数
+            var d3 = parseInt(d2 - d1) / 1000 / 60 / 60 / 24;
+            if (d3 > 31) {
+                alert("查询范围不能超过31天");
+                return;
+            } else {
+                $("#formpro").submit();
+            }
+        });
+    });
+
+    function dosubmit() {
+        if (!confirm("已确认退款信息无误!")) return;
+        var repaymentAmounted = $("#repaymentAmounted").val();
+        if (repaymentAmounted == '') {
+            alertPopup("退款款金额不能为空!");
+            return;
+        }
+
+        if (isNaN(repaymentAmounted)) {
+            alertPopup("退款金额必须是数字!");
+            return;
+        }
+
+        if (repaymentAmounted < 0) {
+            alertPopup("退款金额必须大于等于0!");
+            return;
+        }
+        var repaymentOrderNo = $("#repaymentOrderNo").val();
+        if (repaymentOrderNo == '') {
+            alertPopup("电子回执单号不能为空!");
+            return;
+        }
+
+        var refundBank = $("#refundBank").val();
+        if (refundBank == '') {
+            alertPopup("退款银行（客户）不能为空!");
+            return;
+        }
+        var refundCardNo = $("#refundCardNo").val();
+        if (refundCardNo == '') {
+            alertPopup("退款银行账号（客户）不能为空!");
+            return;
+        }
+        var state = $('#state').is(':checked') ? 1 : 0;
+        var data = {
+            orderId: $("#orderId").val(),
+            userId: $("#userId").val(),
+            userName: $("#refundUserName").val(),
+            bank: $("#bindBank").val(),
+            cardCode: $("#bindCardNo").val(),
+            issue: $("#issue").val(),
+            refundOrderNo: $("#repaymentOrderNo").val(),
+            refundBank: $("#refundBank").val(),
+            refundCardNo: $("#refundCardNo").val(),
+            amount: $("#repaymentAmounted").val(),
+            remark: $("#remark").val()
+        }
+        var url = [[@{/abnormalOrder/saveAbnormal}]];
+        $.ajax({
+            type: "post",
+            data: data,
+            url: url,
+            success: function (resp) {
+                alertPopup(resp.message, function () {
+                    location.href = '/abnormalOrder/pageList?type=1';
+                });
+            }
+        });
+    }
+
+    function assetRepaymented(orderId, userName, bankName, cardCode, issue, userId, refundOrderNo, refundBank, refundCardNo, amount, remark, type
+    ) {
+        $("#box").addClass("show");
+        cleanAll("abnormalAmountForm");
+        if (type == 1) {
+            $(".success").attr("style", "display:none;");
+            $("#repaymentOrderNo").val(refundOrderNo);
+            $("#repaymentOrderNo").attr("style", "background-color: #fbf9ee");
+            $("#repaymentOrderNo").attr("readonly",true);
+            $("#repaymentAmounted").val(amount);
+            $("#repaymentAmounted").attr("readonly",true);
+            $("#repaymentAmounted").attr("style", "background-color: #fbf9ee");
+            $("#refundBank").val(refundBank);
+            $("#refundBank").attr("disabled","disabled")
+            $("#refundBank").attr("style", "background-color: #fbf9ee");
+            $("#refundCardNo").val(refundCardNo);
+            $("#refundCardNo").attr("readonly",true);
+            $("#refundCardNo").attr("style", "background-color: #fbf9ee");
+            $("#remark").val(remark);
+            $("#remark").attr("readonly",true);
+            $("#remark").attr("style", "background-color: #fbf9ee");
+        }
+        $("#refundUserName").val(userName);
+        $("#orderId").val(orderId);
+        $("#bindBank").val(bankName);
+        $("#bindCardNo").val(cardCode);
+        $("#issue").val(issue);
+        $("#userId").val(userId);
+        if(issue==1){
+            $("#issueName").val("重复退款");
+        }else{
+            $("#issueName").val("退款后续期");
+        }
+
+    }
+
+    $(".active").click(function () {
+        $("#box").removeClass("show");
+    })
+    $(".close").click(function () {
+        cleanAll("abnormalAmountForm");
+        $("#box").removeClass("show");
+    })
+
+    function setCookie(name, value) {
+        var exp = new Date();
+        exp.setTime(exp.getTime() + 5 * 1000);
+        document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString();
+    }
+
+    function getCookie(name)
+    {
+        var regExp = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
+        var arr = document.cookie.match(regExp);
+        if (arr == null) {
+            return null;
+        }
+        return unescape(arr[2]);
+    }
+    /*]]>*/
+</script>
+</html>

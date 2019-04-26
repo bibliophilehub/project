@@ -1,0 +1,131 @@
+########################################################
+### spring 相关配置
+########################################################
+spring:
+  boot:
+    admin:
+      url: http://localhost:${server.port}
+  application :
+    name: quhuigou_timed_task
+  mvc:
+    favicon :
+      enabled: false
+  #上传大小限制
+  http:
+    multipart:
+      max-file-size: 100Mb
+      maxRequestSize: 100Mb
+  # thymeleaf 相关配置
+  thymeleaf :
+    cache: false
+
+  jackson :
+    mapper:
+      sort_properties_alphabetically: true
+    property-naming-strategy: LOWER_CAMEL_CASE
+    serialization:
+      indent_output: true
+
+  ########################################################
+  ### datasource
+  ########################################################
+  datasource :
+    url: jdbc:mysql://rm-uf62kcr0wm95wj961vo.mysql.rds.aliyuncs.com:3306/hxx-prod?characterEncoding=UTF-8&allowMultiQueries=true
+    username: hxx_prod
+    password: prod!@#$%^=368&huaxiaoxia
+
+    # 初始化大小，最小，最大
+    max-idle: 500
+    min-idle: 2
+
+    #最大等待实际为10秒
+    max-wait: 10000
+    test-while-idle: true
+    test-on-borrow: false
+
+    # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+    time-between-eviction-runs-millis: 18800
+
+    # 验证
+    validation-query: select 1
+
+  ########################################################
+  ###redis
+  ########################################################
+  redis :
+    host: 47.100.179.59
+    password: prodHuaxiaoxia3688
+    database: 3
+    port: 6379
+    timeout: 1000
+    maxTotal: 500
+    maxIdle: 500
+    maxWaitMillis: 2
+
+  #############定义日志输出色彩
+  output:
+    ansi:
+      enabled: DETECT
+
+  mail:
+    server: false
+    host: smtp.exmail.qq.com
+    username: 2017732276@qq.com
+    password: asd123456
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+########################################################
+### mybatis配置
+########################################################
+mybatis :
+  mapper-locations: classpath:/mapping/*.xml,classpath:/mapping2/*.xml
+  configuration:
+    mapUnderscoreToCamelCase: true
+
+########################################################
+#####################其它配置###########################
+########################################################
+
+# face++ 接口参数
+faceid:
+  app_key: X0bDog-Vv2rBSakxCvH7VyWvEq9Q3QmP
+  app_secret: UN2AOA7syx-MxCvuJx8Xg03Gp5_-gtNt
+  # 人脸比对接口地址
+  face_matching: https://api.megvii.com/faceid/v2/verify
+  ocr_url: https://api.faceid.com/faceid/v1/ocridcard
+
+logging:
+  level: debug
+  config: classpath:config/logback.xml
+
+debug: true
+
+server:
+  context-path: /
+  port: 8087
+
+####文件目录
+file:
+  path: C:\\syj_data\\data
+  sms: \\sms
+  report: \\report
+
+hmd:
+  one_url: http://test.api.qianf.quhgo.com/blackUser/saveOpen
+  pl_url: http://test.api.qianf.quhgo.com/blackUser/saveBatchOpen
+  source_id: le_test
+
+kq:
+  member_code: 10210087968
+  merchantacct_id: 1021008796801
+  contract_id: K18-2000-6257
+
+web.upload-path: C:\\syj_data\\files
+spring.mvc.static-path-pattern: /**
+spring.resources.static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${web.upload-path}

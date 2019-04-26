@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="UTF-8"/>
+	<title>花小侠</title>
+	<meta http-equiv="Expires" content="-1"/>               
+	<meta http-equiv="Pragma" content="no-cache"/>
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta name="format-detection" content="telephone=no"/>
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+	<link rel="stylesheet" type="text/css" th:href="@{/css/tg/index.css}" />
+	<script type="text/javascript" th:src="@{/js/base.js}"></script>
+    <script type="text/javascript" th:src="@{/js/jquery-1.7.1.js}"></script>
+    <script type="text/javascript" th:src="@{/js/global-1.1.0.min.js}"></script>
+	<script type="text/javascript"  th:src='@{/js/tg/index.js}'></script>
+	<script type="text/javascript">
+		$(function () {
+		    var u = navigator.userAgent, app = navigator.appVersion;
+		    var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+		    var isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+		    
+		    if (isAndroid) {
+		    	$("#and").show();
+		    }
+		    
+		    if (isIOS) {
+		    	$("#ios").show();
+		    }else{
+		    	$("#and").show();
+		    }
+		    
+		     var isR=$("#isR").val();
+		     if(isR==1){
+		    	 $("#dow").attr("src","/images/tg/download-old.png");
+		     }
+		    
+		   
+		});
+	</script>
+	
+	
+	
+	
+</head>
+<body class="download-bg">
+<div class="page">
+   <input id="isR" th:value="${isRegistered}" type="hidden"/>
+   <img id="dow"  th:src="@{/images/tg/download.png}"  alt=""/>
+   <a th:href="@{${androidUrl}}"  class="sq-btn active download" id="and" style="display:none;color: #fff;">立即下载</a>
+   <a th:href="@{${iosUrl}}"      class="sq-btn active download" id="ios" style="display:none;color: #fff;">立即下载</a>
+</div>
+
+</body>
+</html>

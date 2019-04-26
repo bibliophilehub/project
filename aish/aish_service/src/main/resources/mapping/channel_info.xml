@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IChannelDao">
+
+    <select id="getList" resultType="com.inext.entity.ChannelInfo" parameterType="map">
+        SELECT
+        *
+        FROM
+        channel_info
+        where 1=1
+        <if test="channelName!=null and channelName!=''">
+            and channel_name LIKE CONCAT('%', #{channelName}, '%')
+        </if>
+        <if test="channelCode!=null and channelCode!=''">
+            and channel_code LIKE CONCAT('%', #{channelCode}, '%')
+        </if>
+        order by update_time desc
+    </select>
+    <select id="getChannelById" resultType="com.inext.entity.ChannelInfo" parameterType="Integer">
+       SELECT
+	        id,
+            channel_code channelCode,
+            channel_name channelName,
+            channel_url channelUrl,
+            old_user_score oldUserScore,
+            new_user_score newUserScore,
+            create_time createTime,
+            update_time updateTime
+        FROM
+       		 channel_info 
+       	where id=#{id}
+    </select>
+    <select id="getChannelByCode" resultType="com.inext.entity.ChannelInfo">
+       SELECT
+	       *
+        FROM
+       		 channel_info 
+       	where channel_code=#{channelCode}
+    </select>
+    <update id="updateById" parameterType="com.inext.entity.ChannelInfo">
+        update channel_info
+        <set>
+            <if test="channelCode != null and channelCode != ''">
+                channel_code =#{channelCode},
+            </if>
+            <if test="channelName != null and channelName !=''">
+                channel_name =#{channelName},
+            </if>
+            <if test="channelUrl != null and channelUrl != ''">
+                channel_url =#{channelUrl},
+            </if>
+            old_user_score =#{oldUserScore},new_user_score =#{newUserScore},update_time = now()
+
+        </set>
+        where id =#{id}
+    </update>
+    <select id="getStatisticsList" resultType="map" parameterType="map">
+        Select * from (
+        SELECT
+        c.channel_name AS channelName,
+        c.channel_code AS channelCode,
+        DATE_FORMAT(u.createTime, '%Y-%m-%d') as createTime,
+        COUNT(u.channelId) AS registerCount,
+        COUNT( IF (u.isVerified = 1, TRUE, NULL)) AS nameCount,
+        COUNT(IF(u.isPhone = 1, TRUE, NULL)) AS contactsCount,
+        COUNT( IF (u.isOperator = 1, TRUE, NULL) ) AS operatorCount,
+        COUNT(IF(u.isCard = 1, TRUE, NULL)) AS cardCount,
+        COUNT( IF ( u.transactionPassword IS NOT NULL, TRUE, NULL ) ) AS passwordCount,
+        sum(( select count(1)>0 from asset_borrow_order where user_id= (SELECT id FROM borrow_user WHERE id = u.id ))) approvalCount, -- 当日注册申请数
+        sum(( select count(1)>0 from asset_borrow_order where user_id= (SELECT id FROM borrow_user WHERE id = u.id ) and
+        `status` in (2,3,4,6,7,8,9,10,11,12,13) ) ) AS approveCount,-- 审核通过
+        sum((SELECT count(1) FROM asset_borrow_order WHERE user_id = (SELECT id FROM borrow_user WHERE id = u.id ) AND
+        STATUS in(3,6,7,8,9,10,11,12,13)))AS loanCount,
+        csp.pv_count as pvCount,
+        csp.uv_count as uvCount,
+        CONCAT(ROUND(COUNT(u.channelId) /csp.uv_count * 100, 2),'','%') as reUvRate
+        FROM
+        borrow_user u
+        LEFT JOIN channel_info c ON u.channelId = c.id
+        LEFT JOIN channel_statistics_perday csp on c.id=csp.channel_id and DATE_FORMAT(csp.statistics_date,
+        '%Y-%m-%d')=DATE_FORMAT(#{statisticsTime}, '%Y-%m-%d')
+        WHERE
+        u.channelId > 0
+        and DATE_FORMAT(u.createTime, '%Y-%m-%d') =DATE_FORMAT(#{statisticsTime}, '%Y-%m-%d')
+        <if test="channelName != null and channelName !=''">
+            and c. channel_name LIKE CONCAT( '%', #{channelName}, '%')
+        </if>
+        <if test="channelCode != null and channelCode !=''">
+            and c.channel_code LIKE CONCAT('%', #{channelCode}, '%')
+        </if>
+        GROUP BY
+        u.channelId
+        ) as t
+        <if test="sortColumn != null and sortColumn != ''">
+            Order by ${sortColumn}
+        </if>
+        <if test="sortColumn == null or sortColumn == ''">
+            Order by channelName
+        </if>
+    </select>
+    <select id="getStatisticsByChannelId" resultType="map">
+       SELECT
+			c.channel_name AS channelName,
+			CURDATE() as createTime,
+			COUNT(u.channelId) AS registerCount,
+			COUNT(	IF (u.isVerified = 1, TRUE, NULL)) AS nameCount
+		FROM
+			channel_info c
+		LEFT JOIN borrow_user u ON u.channelId = c.id
+		WHERE
+			c.id = #{channelId}
+        and DATE_FORMAT(u.createTime, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+    </select>
+
+    <select id="channelBalanceStatistics" resultType="map" parameterType="map">
+	    select A.id as channelId,A.channelCode,A.channelName,I.pvCount,I.uvCount,A.registerCount,B.applyCount,C.newUserCount,D.oldUserCount,E.loanCount,F.newLoanCount,G.oldLoanCount,H.loanMoneyMount ,CONCAT(ROUND(A.registerCount /I.uvCount * 100, 2),'%') as reUvRate from
+		  (SELECT	c.id ,c.channel_name AS channelName,c.channel_code AS channelCode,count(u.id) AS registerCount FROM	channel_info c LEFT JOIN borrow_user u ON c.id = u.channelId AND DATE_FORMAT(u.createTime, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') GROUP BY	c.id) A
+		LEFT JOIN
+		  (SELECT c.id ,COUNT(DISTINCT o.user_id ) AS applyCount  FROM	channel_info c LEFT JOIN borrow_user u ON c.id = u.channelId LEFT JOIN asset_borrow_order o on o.user_id=u.id AND DATE_FORMAT(o.order_time, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') GROUP BY	c.id) B on A.id=B.id
+		LEFT JOIN
+		  (SELECT	c.id ,COUNT(DISTINCT o.user_id ) AS newUserCount FROM	channel_info c LEFT JOIN borrow_user u ON c.id = u.channelId and u.isOld=0 LEFT JOIN asset_borrow_order o on o.user_id=u.id AND DATE_FORMAT(o.order_time, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') GROUP BY	c.id) C on A.id=C.id
+		LEFT JOIN
+		  (SELECT	c.id ,COUNT(DISTINCT o.user_id ) AS oldUserCount FROM	channel_info c LEFT JOIN borrow_user u ON c.id = u.channelId and u.isOld=1 LEFT JOIN asset_borrow_order o on o.user_id=u.id AND DATE_FORMAT(o.order_time, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') GROUP BY	c.id) D on A.id=D.id
+		LEFT JOIN
+		  (SELECT	c.id , COUNT(DISTINCT r.user_id ) AS loanCount   FROM	channel_info c LEFT JOIN borrow_user u ON c.id = u.channelId LEFT JOIN asset_repayment_order r on r.user_id=u.id AND DATE_FORMAT(r.credit_repayment_time, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') GROUP BY	c.id)E on A.id=E.id
+		LEFT JOIN
+		  (SELECT c.id ,COUNT(DISTINCT r.user_id ) AS newLoanCount   FROM	channel_info c LEFT JOIN borrow_user u ON c.id = u.channelId and u.isOld=0 LEFT JOIN asset_repayment_order r on r.user_id=u.id AND DATE_FORMAT(r.credit_repayment_time, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') GROUP BY	c.id) F on A.id=F.id
+		LEFT JOIN
+		  (SELECT	c.id , COUNT(DISTINCT r.user_id ) AS oldLoanCount   FROM	channel_info c LEFT JOIN borrow_user u ON c.id = u.channelId and u.isOld=1 LEFT JOIN asset_repayment_order r on r.user_id=u.id AND DATE_FORMAT(r.credit_repayment_time, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') GROUP BY	c.id)G on A.id=G.id
+		LEFT JOIN
+		  (SELECT c.id , COALESCE(SUM(r.money_amount),0) as loanMoneyMount FROM	channel_info c LEFT JOIN borrow_user u ON c.id = u.channelId  LEFT JOIN asset_repayment_order r on r.user_id=u.id AND DATE_FORMAT(r.credit_repayment_time, '%Y-%m-%d') = DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d') GROUP BY	c.id ) H on A.id=H.id
+		LEFT JOIN
+		  (SELECT c.id, if(csp.pv_count is not null ,csp.pv_count,0) as pvCount, if(csp.uv_count is not null , csp.uv_count,0) as uvCount	FROM channel_info c 	LEFT JOIN channel_statistics_perday csp on c.id=csp.channel_id and DATE_FORMAT(csp.statistics_date, '%Y-%m-%d')=DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d')  GROUP BY c.id) I on A.id=I.id
+    </select>
+
+    <select id="queryScore" resultType="java.util.HashMap" parameterType="Integer">
+         SELECT channel_info.id cid,
+        CASE borrow_user.isOld
+        WHEN 1	THEN
+        channel_info.old_user_score
+        ELSE
+        channel_info.new_user_score
+        END  as score
+        from borrow_user
+        join channel_info on borrow_user.channelId=channel_info.id
+        where  borrow_user.id=#{id}
+	 </select>
+
+    <!--查询渠道借款额度-->
+    <select id="getChannelLoanQuotaByChannelId" resultType="com.inext.entity.ChannelLoanQuota" parameterType="Integer">
+      SELECT * FROM channel_loan_quota WHERE channel_id = #{channelId}
+    </select>
+
+    <!--更新渠道借款额度-->
+    <update id="updateChannelLoanQuotaById" parameterType="com.inext.entity.ChannelLoanQuota">
+        UPDATE channel_loan_quota
+        SET loan_per =#{loanPer}, loan_wy =#{loanWy}, loan_all =#{loanAll}, update_time = #{updateTime}
+        WHERE id=#{id}
+    </update>
+
+</mapper>

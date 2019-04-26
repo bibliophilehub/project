@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.ISysRoleModuleDao">
+
+
+    <insert id="saveRoleModule" parameterType="com.inext.entity.SysRoleModule">
+        insert into sys_role_module
+        (module_id , role_id, remark)
+        values
+        (#{moduleId},#{roleId},#{remark})
+    </insert>
+
+	<select id="getModuleIdsByRoleId" resultType="String" parameterType="Integer">
+        select group_concat(module_id) from sys_role_module  where role_id=#{roleId}
+    </select>
+	<select id="getDelModuleIdsByRoleId" resultType="String" parameterType="Map">
+        select group_concat(module_id) from sys_role_module  where role_id=#{roleId} 
+        <if test="moduleIds != null and moduleIds !=''">
+       	 and module_id not in (${moduleIds})
+        </if>
+    </select>
+    <delete id="removeRoleModuleByRoleId" parameterType="Integer">
+        delete from sys_role_module where role_id = #{roleId}
+    </delete>
+    <delete id="removeRoleModuleByModuleId" parameterType="Integer">
+        delete from sys_role_module where module_id = #{moduleId}
+    </delete>
+    <delete id="removeRoleModuleIdsAndRoleId" parameterType="Map">
+        delete from sys_role_module where role_id in (${roleIds}) and module_id in (${moduleIds})
+    </delete>
+</mapper>

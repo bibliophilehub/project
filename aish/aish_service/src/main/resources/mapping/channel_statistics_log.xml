@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IChannelStatisticsLogDao" >
+    <select id="getchannelStatisticsData" parameterType="map" resultType="map">
+    		SELECT
+				csl.channel_id as channelId,
+				csl.statistics_date as statisticsDate,
+				COUNT(IF(csl.type = 1, TRUE, NULL)) AS pvCount,
+				COUNT(IF(csl.type = 2, TRUE, NULL)) AS uvCount
+			FROM
+				channel_statistics_log csl
+			WHERE
+				DATE_FORMAT(csl.statistics_date, '%Y-%m-%d') =DATE_FORMAT(#{statisticsDate}, '%Y-%m-%d')
+			GROUP BY
+				csl.channel_id
+    </select>
+</mapper>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IPermissionInfoDao">
+  <resultMap id="BaseResultMap" type="com.inext.entity.PermissionInfo">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="module_id" jdbcType="INTEGER" property="moduleId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="remarks" jdbcType="VARCHAR" property="remarks" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, user_id, module_id, create_time, remarks, url
+  </sql>
+  <select id="getInfoByUserId" resultMap="BaseResultMap" >
+    SELECT * FROM permission_info pi LEFT JOIN sys_module sm on pi.module_id=sm.id
+    where pi.user_id=#{userId}
+  </select>
+  <select id="getModuleIdsByUserId" resultType="String" parameterType="Integer">
+        select group_concat(module_id) from permission_info  where user_id=#{userId}
+    </select>
+    <select id="getModuleByUserId" resultType="com.inext.entity.SysModule">
+        SELECT
+        distinct
+        sm.id,
+        sm.parent_id parentId,
+        sm.name,
+        sm.url,
+        sm.icon_class iconClass,
+        sm.element_class elementClass,
+        sm.menus i
+        FROM
+        sys_module sm
+        <if test="backUserId != null and backUserId !=''">
+	        ,permission_info pi,
+	        sys_role_module srm,
+	        sys_role sr,
+			sys_user_role sur
+	        where 1=1 and sm.enabled=1 and sr.enabled=1 and sm.menus=1
+	        and pi.module_id = sm.id
+	        and sm.id=srm.module_id
+	        and srm.role_id=sr.id
+	        and sur.role_id=sr.id
+	        and sur.user_id=pi.user_id
+	        and pi.user_id = #{backUserId}
+        </if>
+        <if test="backUserId == null or backUserId ==''">
+        	where 1=1 and sm.enabled=1 and sm.menus=1
+        </if>
+        and sm.status = #{status}
+        and sm.enabled = #{enabled}
+        and sm.parent_id = #{parentId}
+        order by sm.rank
+    </select>
+    <delete id="deleteByModuleIdsAndUserIds" parameterType="Map">
+        delete from permission_info where user_id in (${delUserIds}) and module_id in (${delModuleIds})
+    </delete>
+</mapper>

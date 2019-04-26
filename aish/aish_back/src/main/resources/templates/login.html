@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml" class="body-full-height">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>支撑平台</title>
+    <link rel="stylesheet" type="text/css" id="theme" th:href="@{/v2/css/theme-default.css}"/>
+    <link rel="icon" th:href="@{/v2/img/titleicon.png}" type="image/x-icon" />
+    <script type="text/javascript" th:src="@{/js/jquery.js}"></script>
+    <style type="text/css">
+        .getMobileCode{
+            width:100%;
+            height:28px;
+            border:none;
+            background:#fff;
+            border-radius:5px;
+            border:none;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+
+    <div class="login-box animated fadeInDown">
+        <div class="blankDiv"></div>
+        <div class="login-body">
+
+            <div class="login-title"><img th:src="@{/v2/img/logoApp.jpg}"/><span>产品2</span></div>
+            <form name="loginForm" id="loginForm" action="/user/loginSubmit" method="post" onsubmit="return login();">
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <input type="text" id="userAccount" name="userAccount" maxlength="100" class="input" placeholder="用户名"/>
+                    </div>
+                </div>
+                <div class="form-group passwordLogin" style="display:none">
+                    <div class="col-md-12">
+                        <input name="userPassword" type="password" id="userPassword" maxlength="32" class="input" placeholder="密码" style=""/>
+                    </div>
+                </div>
+                <div class="form-group mobileCodeGroup">
+                    <div class="col-md-8 col-captcha" style="margin-top: 10px">
+                        <input maxlength="32"  name="mobileCode" type="text"  class="mobileCode" placeholder="手机验证码"/>
+                    </div>
+                    <div class="col-md-4" style="margin-top: 10px">
+                        <button type="button" class="getMobileCode" id="sigup_send_sms_btn">获取验证码</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-6 col-captcha">
+                        <input maxlength="4"  name="captcha" type="text" id="captcha" class="" placeholder="验证码"/>
+                    </div>
+                    <div class="col-md-6">
+                        <img th:src="@{/captcha.svl}" style="color: #fff;line-height: 26px;width: 100%;height: 29px;border-radius: 4px;"
+                             th:onclick="@{this.src = '/captcha.svl?d=' + new Date() * 1 }" alt="点击更新" title="点击更新"/>
+                    </div>
+                </div>
+                <div class="form-group ground">
+                    <div class="col-md-12" style="text-align:center;">
+                        <input type="submit" class="btn btn-info btn-block" value="登录" style="width: 50%;display: inline-block; border-radius: 4px;"
+                               onfocus="this.blur();"/>
+                    </div>
+                    <div class="col_md-12" style="text-algin: right">
+                        <input type="hidden" id="loginType" name="loginType" value="1" />
+                        <a id="butLoginType" onclick="changeLoginType();" href="javascript:void(0);" style="margin-left: 280px">帐号密码登录</a>
+                    </div>
+                    <!--.tabBox .col-md-12{margin-top: 10px;}-->
+                    <!--.tabBox .col-md-12 .col-md-6 img{width: 60px;}-->
+                    <!--.tabBox .col-md-12 .col-md-6 .remark{resize: auto;border: 1px solid rgb(213, 213, 213);background: rgb(249, 249, 249);border-radius: 4px;}-->
+                    <!--.tabBox .col-md-12 .col-md-2{text-align: right;font-weight: 600;font-size: 13px;color: #22262e;}-->
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+<script th:inline="javascript">
+    //变更登录方式
+    function changeLoginType() {
+        var type=$("#loginType").val();
+        if(type=="1")//改为密码登录
+        {
+            $("#loginType").val(0);
+            $("#butLoginType").text("短信快捷登录");
+            $(".passwordLogin").show();
+            $(".mobileCodeGroup").hide();
+        }
+        else if(type=="0")//改为短信登录
+        {
+            $("#loginType").val(1);
+            $("#butLoginType").text("帐号密码登录");
+            $(".mobileCodeGroup").show();
+            $(".passwordLogin").hide();
+        }
+    }
+
+    function login() {
+        var type=$("#loginType").val();
+        var userPhone = $("#userAccount").val();
+        if(type=="1")
+        {
+            if (!checkVar(userPhone)) {
+                alert('请输入手机号码');
+                return;
+            } else if (phonePattern.test(userPhone) == false) {
+                alert('手机号格式不对');
+                return;
+            }
+            else if(loginForm.mobileCode.value == "")
+            {
+                alert("请输入收到的验证码");
+                return false;
+            }
+        }
+
+        else
+        {
+            if(loginForm.mobileCode.value == "")
+            {
+
+            }
+
+        }
+        // if (loginForm.userAccount.value == "") {
+        //     alert("用户名不能为空！");
+        //     return false;
+        // } else if (loginForm.userPassword.value == "") {
+        //     alert("密码不能为空！");
+        //     return false;
+        // } else if (loginForm.captcha.value == "") {
+        //     alert("验证码不能为空！");
+        //     return false;
+        // }
+    }
+    // $("#userAccount").blur(function(){
+    //     if (loginForm.userAccount.value != "admin") {
+    //         $(".mobileCodeGroup").show();
+    //
+    //     }else{
+    //         $(".mobileCodeGroup").hide();
+    //     }
+    // });
+    // $("#userAccount").change(function(){
+    //     if (loginForm.userAccount.value != "admin") {
+    //         $(".mobileCodeGroup").show();
+    //
+    //     }else{
+    //         $(".mobileCodeGroup").hide();
+    //     }
+    // });
+
+
+    var phonePattern = /(^(([0\+]\d{2,3}-)?(0\d{2,3})-)(\d{7,8})(-(\d{3,}))?$)|(^(([0\+]\d{2,3})?(0\d{2,3}))(\d{7,8})((\d{3,}))?$)|(^0{0,1}1[3|4|5|6|7|8|9][0-9]{9}$)/;
+    $('#sigup_send_sms_btn').on('click', function() {
+
+        var userPhone = $("#userAccount").val();
+        if (!checkVar(userPhone)) {
+            alert('请输入手机号码');
+            return;
+        } else if (phonePattern.test(userPhone) == false) {
+            alert('手机号格式不对');
+            return;
+        }
+        $(this).attr('disabled',true);
+        $.ajax({
+            url : "/user/getMobileCode",
+            type    : "POST",
+            async   : false,
+            dataType : 'json',
+            data : {
+                userPhone: userPhone,
+            },
+            success : function(ret) {
+                $(this).attr('disabled',false);
+                if (ret.code == '0') {
+                    // 短信重发时间间隔，用于倒时（秒）
+                    var curSeconds = 60;
+                    var id = window.setInterval(function () {
+                        var strs = curSeconds + '秒后可重发';
+                        $('#sigup_send_sms_btn').text(strs);
+                        if (0 > curSeconds) {
+                            window.clearInterval(id);
+                            $('#sigup_send_sms_btn').text('重新发送');
+                            $('#sigup_send_sms_btn').prop('disabled', false);
+                        }
+                        --curSeconds;
+                    }, 1000);
+                }
+                else
+                    alert(ret.message);
+            }
+        });
+    })
+
+    var msg = [[${message}]];
+    if (msg) {
+        alert(msg);
+    }
+
+    //判断变量是否为空
+    function checkVar(param) {
+        if (param == '' || param == undefined || param == null) {
+            return false;
+        }
+        return true;
+    }
+</script>
+</html>

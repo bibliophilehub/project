@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inext.dao.IBankAllInfoDao">
+	<select id="findBankAllInfoByName" resultType="com.inext.entity.BankAllInfo">
+  		select 
+    	b.id ,
+		b.bank_name as bankName,
+		b.bank_code,
+		b.open_bank
+		from bank_all_info b where b.bank_name like #{bankName}
+  	</select>
+
+	<select id="findBankAllInfo" resultType="com.inext.entity.BankAllInfo">
+  		select
+    	b.bank_code ,
+		b.bank_name as bankName
+		from bank_all_info b
+  	</select>
+
+</mapper>
